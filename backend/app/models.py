@@ -1,1 +1,1 @@
-# modelo user
+# definiçoes de tabelas/classes
