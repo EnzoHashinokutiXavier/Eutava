@@ -10,3 +10,6 @@ env/
 
 # Environment Variables
 .env
+
+# Flask
+flask_session/
