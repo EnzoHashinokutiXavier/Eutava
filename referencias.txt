@@ -1,0 +1,7 @@
+Material de estudo usado 
+flask + jinja : https://www.youtube.com/watch?v=gnkkLc8IAMI
+flask sessions : https://www.youtube.com/watch?v=iIhAfX4iek0&list=PLzMcBGfZo4-n4vJJybUVV3Un_NFS5EOgX&index=5
+responsive navbar bootstrap5: https://www.youtube.com/watch?v=h5apE3E72wY&list=PLj0z0WBaTiH7jOjO7C0w2lSeuuisoiSR9
+
+
+se utilizar passagem de dados por url : https://www.youtube.com/watch?v=8yMvnb3hnmU
