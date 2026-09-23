@@ -1,1 +1,78 @@
-/*
+
+/* Navbar - referencia : https://www.youtube.com/watch?v=h5apE3E72wY&t=440s */
+
+body {
+    padding-top: 120px;
+    background: url("../images/website.jpg") no-repeat center center fixed;
+    background-size: cover;
+    min-height: 100vh;
+}
+
+.navbar {
+    background-color: white;
+    height: 80px;
+    margin: 20px;
+    border-radius: 16px;
+    padding: 0.5rem;
+}
+
+.navbar-brand {
+    font-weight: 500;
+    color: rgb(98, 7, 134);
+    font-size: 24px;
+    transition: 0.3s color;
+}
+
+.logout-button {
+    background-color: rgb(0, 102, 255);
+    color:white;
+    font-size: 14px;
+    padding: 8px 20px;
+    border-radius: 50px;
+    text-decoration: none;
+    transition: 0.3s background-color;
+}
+
+.logout-button:hover{
+    background-color: rgb(66, 138, 247);
+}
+
+.navbar-toogler {
+    border:none;
+    font-size: 1.25rem;
+}
+
+.navbar-toogler:focus, .btn-close:focus {
+    box-shadow: none;
+    outline: none;
+}
+
+.nav-link {
+    color: grey;
+    font-weight: 500;
+    position: relative;
+}
+
+.nav-link:hover, .nav-link.active {
+    color: black;
+}
+
+@media (min-width: 991px){
+    .nav-link::before{
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 2px;
+        background-color: rgb(139, 15, 189);
+        transition: hidden;
+        transition: 0.3s ease-in-out;
+    }
+
+    .nav-link:hover::before, .nav-link.active::before{
+        width: 100%;
+        visibility: visible;
+    }
+}
