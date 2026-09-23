@@ -1,5 +1,5 @@
 from pathlib import Path
-from flask import Flask, render_template, redirect, url_for, request, session
+from flask import Flask, render_template, redirect, url_for, request, session, flash
 from datetime import timedelta
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent  # backend/app -> backend -> raiz do projeto
@@ -17,6 +17,7 @@ def home():
         user = session["user"]
         return render_template("index.html", user=user)
     else:
+        flash("Não está logado!", "info")
         return redirect(url_for("login"))
 
 # Get recebe formulario e quando preenchido envia em POST 
@@ -28,12 +29,17 @@ def login():
         session["user"] = user
         return redirect(url_for("home"))
     else:
+        if "user" in session:
+            flash("Já está logado!", "info")
+            return redirect(url_for("home"))
         return render_template("login.html")
 
 # Limpa sessão
 @app.route("/logout")
 def logout():
-    session.pop("user", None)
+    if "user" in session:
+        session.pop("user", None)
+        flash("Desconectado com sucesso!", "info")
     return redirect(url_for("login"))
 
 # Só roda o servidor web quando executar diretamente de main.py
