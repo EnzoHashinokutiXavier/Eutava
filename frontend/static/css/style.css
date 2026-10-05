@@ -37,12 +37,12 @@ body {
     background-color: rgb(66, 138, 247);
 }
 
-.navbar-toogler {
+.navbar-toggler {
     border:none;
     font-size: 1.25rem;
 }
 
-.navbar-toogler:focus, .btn-close:focus {
+.navbar-toggler:focus, .btn-close:focus {
     box-shadow: none;
     outline: none;
 }
