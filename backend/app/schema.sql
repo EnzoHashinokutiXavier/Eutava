@@ -1,0 +1,40 @@
+CREATE TABLE IF NOT EXISTS users (
+    user_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE,
+    hash_password TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS courses (
+    course_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(user_id),
+    name TEXT NOT NULL,
+    abscence_limit INTEGER NOT NULL DEFAULT 0,
+    default_presence INTEGER NOT NULL DEFAULT 1,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS schedule (
+    schedule_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    course_id INTEGER NOT NULL REFERENCES courses(course_id),
+    weekday INTEGER NOT NULL,
+    qtd_classes INTEGER NOT NULL DEFAULT 1
+);
+
+CREATE TABLE IF NOT EXISTS attendance (
+    attendance_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    course_id INTEGER NOT NULL REFERENCES courses(course_id),
+    date DATE NOT NULL,
+    qtd_classes INTEGER NOT NULL DEFAULT 1,
+    absences INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS holidays (
+    holiday_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    course_id INTEGER NOT NULL REFERENCES courses(course_id),
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    description TEXT NOT NULL
+);
+

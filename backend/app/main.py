@@ -1,6 +1,7 @@
 from pathlib import Path
 from flask import Flask, render_template, redirect, url_for, request, session, flash
 from datetime import timedelta
+from app.db import get_connection, init_db
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent  # backend/app -> backend -> raiz do projeto
 TEMPLATES_DIR = BASE_DIR / "frontend" / "templates"
@@ -9,6 +10,11 @@ STATIC_DIR = BASE_DIR / "frontend" / "static"
 app = Flask(__name__, template_folder=str(TEMPLATES_DIR), static_folder=str(STATIC_DIR))
 app.secret_key = "hello" # para encriptar !!! temporario, mudar depois
 app.permanent_session_lifetime = timedelta(days=2) # quanto tempo armazena sessão para nao precisar logar toda vez que fechar o browser
+
+@app.cli.command("init-db")
+def init_db_command():
+    init_db()
+    print("Banco initialized with success")
 
 # Pagina inicial, se não estiver logado redireciona para pagina de login
 @app.route("/")
