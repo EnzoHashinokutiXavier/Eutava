@@ -55,3 +55,20 @@ def day_info(course, day, today):
     
     return {"type": "missed", "schedules": schedules_day, "absences": schedules_day, "auto": True}
     
+def course_stats(course, today, warn_at):
+    used = 0
+    day = course.start_date
+
+    while day <= course.end_date:
+        info = day_info(course, day, today)
+        if info["type"] in ["present", "partial", "missed"]:
+            used += info["absences"]
+        day += timedelta(days=1)
+    
+    if used >= course.max_abs:
+        return {"used": used, "max": course.max_abs, "status": "risk"}
+    elif used / course.max_abs * 100 >= warn_at:
+        return {"used": used, "max": course.max_abs, "status": "warn"}
+    else:
+        return {"used": used, "max": course.max_abs, "status": "safe"}
+
