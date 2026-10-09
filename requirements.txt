@@ -1,3 +1,5 @@
 flask
 psycopg[binary]
 python-dotenv
+pytest
+pytest-mock
