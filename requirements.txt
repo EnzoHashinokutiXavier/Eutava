@@ -3,3 +3,4 @@ psycopg[binary]
 python-dotenv
 pytest
 pytest-mock
+argon2-cffi
