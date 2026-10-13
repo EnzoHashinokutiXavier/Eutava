@@ -2,6 +2,8 @@ from pathlib import Path
 from flask import Flask, render_template, redirect, url_for, request, session, flash
 from datetime import timedelta
 from app.db import get_connection, init_db
+from app.models import create_user, get_user
+from app.security import hash_password
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent  # backend/app -> backend -> raiz do projeto
 TEMPLATES_DIR = BASE_DIR / "frontend" / "templates"
@@ -39,6 +41,10 @@ def login():
             flash("Já está logado!", "info")
             return redirect(url_for("home"))
         return render_template("login.html")
+
+@app.route("/register, methods=["POST"]")
+def register():
+    
 
 # Limpa sessão
 @app.route("/logout")
