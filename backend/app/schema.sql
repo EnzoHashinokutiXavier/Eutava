@@ -7,9 +7,9 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS courses (
     course_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    user_id INTEGER NOT NULL REFERENCES users(user_id),
+    user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
     name TEXT NOT NULL,
-    abscence_limit INTEGER NOT NULL DEFAULT 0,
+    absence_limit INTEGER NOT NULL DEFAULT 0,
     default_presence INTEGER NOT NULL DEFAULT 1,
     start_date DATE NOT NULL,
     end_date DATE NOT NULL
@@ -17,22 +17,24 @@ CREATE TABLE IF NOT EXISTS courses (
 
 CREATE TABLE IF NOT EXISTS schedule (
     schedule_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    course_id INTEGER NOT NULL REFERENCES courses(course_id),
+    course_id INTEGER NOT NULL REFERENCES courses(course_id) ON DELETE CASCADE,
     weekday INTEGER NOT NULL,
-    qtd_classes INTEGER NOT NULL DEFAULT 1
+    qtd_classes INTEGER NOT NULL DEFAULT 1,
+    UNIQUE (course_id, weekday)
 );
 
 CREATE TABLE IF NOT EXISTS attendance (
     attendance_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    course_id INTEGER NOT NULL REFERENCES courses(course_id),
+    course_id INTEGER NOT NULL REFERENCES courses(course_id) ON DELETE CASCADE ,
     date DATE NOT NULL,
     qtd_classes INTEGER NOT NULL DEFAULT 1,
-    absences INTEGER NOT NULL DEFAULT 0
+    absences INTEGER NOT NULL DEFAULT 0,
+    UNIQUE (course_id, date)
 );
 
 CREATE TABLE IF NOT EXISTS holidays (
     holiday_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    course_id INTEGER NOT NULL REFERENCES courses(course_id),
+    course_id INTEGER NOT NULL REFERENCES courses(course_id) ON DELETE CASCADE,
     start_date DATE NOT NULL,
     end_date DATE NOT NULL,
     description TEXT NOT NULL
