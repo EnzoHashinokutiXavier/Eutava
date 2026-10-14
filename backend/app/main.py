@@ -5,13 +5,18 @@ from app.db import get_connection, init_db
 from app.models import create_user, get_user
 from app.security import hash_password, verify_password
 from psycopg.errors import OperationalError
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
+
+SECRET_KEY = os.environ["SECRET_KEY"]
 BASE_DIR = Path(__file__).resolve().parent.parent.parent  # backend/app -> backend -> raiz do projeto
 TEMPLATES_DIR = BASE_DIR / "frontend" / "templates"
 STATIC_DIR = BASE_DIR / "frontend" / "static"
 
 app = Flask(__name__, template_folder=str(TEMPLATES_DIR), static_folder=str(STATIC_DIR))
-app.secret_key = "hello" # para encriptar !!! temporario, mudar depois
+app.secret_key = SECRET_KEY
 app.permanent_session_lifetime = timedelta(days=2) # quanto tempo armazena sessão para nao precisar logar toda vez que fechar o browser
 
 @app.cli.command("init-db")
@@ -26,7 +31,7 @@ def home():
         user = session["user"]
         return render_template("index.html", user=user)
     else:
-        flash("Não está logado!", "info")
+        flash("You're not logged in!", "info")
         return redirect(url_for("login"))
 
 # Get recebe formulario e quando preenchido envia em POST 
