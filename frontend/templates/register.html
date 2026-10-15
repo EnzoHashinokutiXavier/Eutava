@@ -1,1 +1,41 @@
-<!-- -->
+{% extends "base.html" %}
+{% block title %}Create account{% endblock %}
+{% block body %}
+<div class="container">
+    <div class="row min-vh-100 align-items-center justify-content-center">
+        <div class="col-12 col-sm-8 col-md-6 col-lg-4 py-4">
+            <div class="text-center mb-4">
+                <span class="fs-2 fw-semibold">Eutava</span>
+            </div>
+
+            <form method="post" novalidate>
+                <h2 class="h3 fw-medium mb-1 text-center">Create your account</h2>
+                <p class="text-body-secondary mb-4 text-center">It takes a minute to set up your account.</p>
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% for category, msg in messages %}
+                        <div class="alert alert-{{ 'danger' if category == 'error' else category }} py-2" role="alert">{{ msg }}</div>
+                    {% endfor %}
+                {% endwith %}
+
+                <div class="vstack gap-3">
+                    <div class="">
+                        <input class="form-control form-control-lg" type="text" name="name" placeholder="Full Name" value="{{ request.form.get('name', '') }}" autocomplete="name" required>
+                    </div>
+                    <div class="">
+                        <input class="form-control form-control-lg" type="email" name="email" placeholder="Email" value="{{ request.form.get('email', '') }}" autocomplete="email" required>
+                    </div>
+                    <div class="">
+                        <input class="form-control form-control-lg" type="password" name="password" placeholder="Password (+8 characters)" value autocomplete="new-password" minlength="8" required>
+                    </div>
+                    <button class="btn btn-primary btn-lg" type="submit">Create Account</button>
+                    <p class="text-center text-body-secondary mb-0 mt-2">
+                        Already have an account?
+                        <a href="/login">Sign In</a>
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
