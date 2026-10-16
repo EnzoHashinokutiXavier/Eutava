@@ -1,0 +1,14 @@
+adicionar postgre ao path
+C:\Program Files\PostgreSQL\18\bin
+
+iniciar postgre
+psql -U postgres
+
+criar venv 
+python -m venv venv
+
+inicializar tabelas dentro do backend
+flask --app app.main init-db
+
+iniciar flask
+flask --app app.main run
