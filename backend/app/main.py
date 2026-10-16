@@ -2,13 +2,21 @@ from pathlib import Path
 from flask import Flask, render_template, redirect, url_for, request, session, flash
 from datetime import timedelta
 from app.db import get_connection, init_db
+from app.models import create_user, get_user
+from app.security import hash_password, verify_password
+from psycopg.errors import OperationalError
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
+
+SECRET_KEY = os.environ["SECRET_KEY"]
 BASE_DIR = Path(__file__).resolve().parent.parent.parent  # backend/app -> backend -> raiz do projeto
 TEMPLATES_DIR = BASE_DIR / "frontend" / "templates"
 STATIC_DIR = BASE_DIR / "frontend" / "static"
 
 app = Flask(__name__, template_folder=str(TEMPLATES_DIR), static_folder=str(STATIC_DIR))
-app.secret_key = "hello" # para encriptar !!! temporario, mudar depois
+app.secret_key = SECRET_KEY
 app.permanent_session_lifetime = timedelta(days=2) # quanto tempo armazena sessão para nao precisar logar toda vez que fechar o browser
 
 @app.cli.command("init-db")
@@ -23,29 +31,81 @@ def home():
         user = session["user"]
         return render_template("index.html", user=user)
     else:
-        flash("Não está logado!", "info")
+        flash("You're not logged in!", "info")
         return redirect(url_for("login"))
 
 # Get recebe formulario e quando preenchido envia em POST 
 @app.route("/login", methods=["POST", "GET"])
 def login():
-    if request.method == "POST":
-        session.permanent = True
-        user = request.form["name"]
-        session["user"] = user
-        return redirect(url_for("home"))
-    else:
-        if "user" in session:
-            flash("Já está logado!", "info")
+    if request.method == "GET":
+        if "user_id" in session:
+            flash("You're already logged in!", "info")
             return redirect(url_for("home"))
         return render_template("login.html")
+        
+    email = request.form.get("email", "").strip().lower()
+    password = request.form.get("password", "")
+
+    if (len(email) == 0) or (len(password) == 0):
+        flash("Please fill in all fields", "error")
+        return render_template("login.html"), 400
+    
+    try:    
+        user = get_user(email)
+    except OperationalError:
+        flash("Internal Server Error", "error")
+        return render_template("login.html"), 503
+    
+    if user is None or not verify_password(user[2], password):
+        flash("Invalid email or password", "error")
+        return render_template("login.html"), 401
+
+    user_id, name, _ = user
+
+    session.clear()
+    session.permanent = True
+    session["user_id"] = user_id
+    session["user"] = name
+
+    return redirect(url_for("home"))
+
+@app.route("/register", methods=["POST", "GET"])
+def register():
+    if request.method == "GET":
+        return render_template("register.html")
+
+    name = request.form.get("name", "").strip()
+    email = request.form.get("email", "").strip().lower()
+    password = request.form.get("password", "")
+
+    if (len(name) == 0) or (len(email) == 0) or (len(password) == 0):
+        flash("Please fill in all fields", "error")
+        return render_template("register.html"), 400
+
+    if (len(password) < 8):
+        flash("Password must be at least 8 characters long", "error")
+        return render_template("register.html"), 400
+
+    hashed = hash_password(password)
+    try:
+        user_id = create_user(name, email, hashed)
+    except OperationalError:
+        flash("Internal server error", "error")
+        return render_template("register.html"), 503
+
+    if user_id is None:
+        flash("This email is already registered", "error")
+        return render_template("register.html"), 409
+
+    flash("Account created", "success")
+    return redirect(url_for("login"))
 
 # Limpa sessão
 @app.route("/logout")
 def logout():
     if "user" in session:
-        session.pop("user", None)
-        flash("Desconectado com sucesso!", "info")
+        session.clear()
+        flash("Logged out successfully!", "info")
     return redirect(url_for("login"))
 
 # Só roda o servidor web quando executar diretamente de main.py
