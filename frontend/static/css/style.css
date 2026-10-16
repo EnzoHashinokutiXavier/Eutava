@@ -1,15 +1,50 @@
 
+/* Cores do tema claro (padrão) */
+:root {
+    --cor-fundo: #ffffff;
+    --cor-texto: #000000;
+    --cor-navbar: #ffffff;
+    --cor-link: grey;
+    --cor-link-hover: black;
+}
+
+/* Cores do tema escuro */
+[data-bs-theme="dark"] {
+    --cor-fundo: #121212;
+    --cor-texto: #ffffff;
+    --cor-navbar: #1e1e1e;
+    --cor-link: #b0b0b0;
+    --cor-link-hover: #ffffff;
+}
+
 /* Navbar - referencia : https://www.youtube.com/watch?v=h5apE3E72wY&t=440s */
 
 body {
     padding-top: 120px;
     background: url("../images/website.jpg") no-repeat center center fixed;
     background-size: cover;
+    background-color: var(--cor-fundo);
+    color: var(--cor-texto);
     min-height: 100vh;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+/* Escurece a imagem de fundo no modo escuro */
+[data-bs-theme="dark"] body {
+    background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url("../images/website.jpg");
+}
+
+.btn-tema {
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    color: var(--cor-texto);
+    margin-right: 12px;
+    cursor: pointer;
 }
 
 .navbar {
-    background-color: white;
+    background-color: var(--cor-navbar);
     height: 80px;
     margin: 20px;
     border-radius: 16px;
@@ -48,13 +83,13 @@ body {
 }
 
 .nav-link {
-    color: grey;
+    color: var(--cor-link);
     font-weight: 500;
     position: relative;
 }
 
 .nav-link:hover, .nav-link.active {
-    color: black;
+    color: var(--cor-link-hover);
 }
 
 @media (min-width: 991px){
