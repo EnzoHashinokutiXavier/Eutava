@@ -4,4 +4,6 @@ flask sessions : https://www.youtube.com/watch?v=iIhAfX4iek0&list=PLzMcBGfZo4-n4
 responsive navbar bootstrap5: https://www.youtube.com/watch?v=h5apE3E72wY&list=PLj0z0WBaTiH7jOjO7C0w2lSeuuisoiSR9
 pytest : https://www.youtube.com/watch?v=EgpLj86ZHFQ
 
+documnetação email validator : https://pypi.org/project/email-validator/
+
 se utilizar passagem de dados por url : https://www.youtube.com/watch?v=8yMvnb3hnmU
