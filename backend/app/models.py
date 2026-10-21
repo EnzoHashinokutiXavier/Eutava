@@ -4,16 +4,18 @@ from psycopg.errors import UniqueViolation
 # verificar se usuário existe  
 def user_exists(username):
     # se username existe no banco de dados
-    if ():
-        return True
-    return False
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT 1 FROM users WHERE name = %s", (username,))
+            return cur.fetchone() is not None
 
 # verificar se email já está cadastrado
 def email_exists(email):
     # se email existe no banco de dados
-    if ():
-        return True
-    return False
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT 1 FROM users WHERE email = %s", (email,))
+            return cur.fetchone() is not None
 
 # criar usuário
 def create_user(username, email, password_hash):
@@ -37,10 +39,11 @@ def get_user(email):
 # pegar hash por id 
 def get_user_hash(user_id):
     # Pega o hash no banco de dados
-    try:
-        return user_hash
-    except:
-        return None
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT hash_password FROM users WHERE user_id = %s", (user_id,))
+            row = cur.fetchone()
+            return row[0] if row else None
 
 # atualizar hash do usuário pelo id
 def update_user_hash(user_id, new_hash):
