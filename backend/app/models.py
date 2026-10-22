@@ -59,3 +59,50 @@ def delete_user(user_id):
         with conn.cursor() as cur:
             cur.execute("DELETE FROM users WHERE user_id = %s", (user_id,))
             return cur.rowcount == 1
+
+# cria a materia no banco linkado ao usuario e tambem ja insere os dias da semana quando tem aula e quantas aulas
+def create_course(user_id, name, absence_limit, default_presence, start_date, end_date, schedule):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "INSERT INTO courses (user_id, name, absence_limit, default_presence, start_date, end_date)"
+                " VALUES (%s,%s,%s,%s,%s,%s) RETURNING course_id", 
+                (user_id, name, absence_limit, default_presence, start_date, end_date))
+            course_id = cur.fetchone()[0]
+            for weekday, qtd_classes in schedule.items():
+                cur.execute(
+                    "INSERT INTO schedule (course_id, weekday, qtd_classes)"
+                    " VALUES (%s, %s, %s)",
+                    (course_id, weekday, qtd_classes)
+                )
+            return course_id
+
+# lista as materias do usuario (retorna uma lista de tuplas [...])
+def get_courses(user_id):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT course_id, name, absence_limit, default_presence, start_date, end_date "
+                " FROM courses WHERE user_id = %s ORDER BY name", 
+                (user_id, ))
+            return cur.fetchall()
+
+# lista os dados de uma materia e retorna uma tupla com 6 elementos
+def get_course(course_id, user_id):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT course_id, name, absence_limit, default_presence, start_date, end_date"
+                " FROM courses WHERE course_id = %s AND user_id = %s",
+                (course_id, user_id)
+            )
+            return cur.fetchone()
+
+# lista os dias da semana em que tem aula da materia retorna um dict {...} com int nas chaves e int nos valores
+def get_schedule(course_id):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT weekday, qtd_classes FROM schedule WHERE course_id = %s", (course_id, )
+            )
+            return dict(cur.fetchall())
