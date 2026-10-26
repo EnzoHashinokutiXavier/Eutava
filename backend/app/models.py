@@ -115,11 +115,34 @@ def set_attendance(course_id, date, qtd_classes, absences):
                 cur.execute(
                     "INSERT INTO attendance (course_id, date, qtd_classes, absences)"
                     " VALUES (%s, %s, %s, %s) ON CONFLICT (course_id, date) DO UPDATE"
-                    " SET qtd_classes = EXCLUDED.qtd_classes, absences = EXCLUDED.absences",
+                    " SET qtd_classes = EXCLUDED.qtd_classes, absences = EXCLUDED.absences"
+                    " RETURNING attendance_id",
                     (course_id, date, qtd_classes, absences)
                 )
+                return cur.fetchone()[0]
     except CheckViolation:
         return None
+
+# Captura um attendance atraves do course_id e retorna as colunas (date, qtd_classes e absences)
+def get_attendances(course_id):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT date, qtd_classes, absences FROM attendance WHERE course_id = %s",
+                (course_id, )
+            )
+            return {day: (qtd_classes, absences) for day, qtd_classes, absences in cur.fetchall()}
+
+# Deleta o attendance do banco usando o course_id e date
+def delete_attendance(course_id, date):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "DELETE FROM attendance WHERE course_id = %s AND date = %s",
+                (course_id, date)
+            )
+            return cur.rowcount == 1
+        
 # Feriados: add_holiday, get_holidays e delete_holiday
 # Matérias: update_course, delete_course e update_schedule
 # Ponte com a lógica de faltas: uma função que monta o dataclass Course de attendance.py a partir do banco. Ela juntaria get_course, get_schedule, as presenças e os feriados. Sem isso, day_info e course_stats nunca são usados
