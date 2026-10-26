@@ -1,5 +1,5 @@
 from app.db import get_connection
-from psycopg.errors import UniqueViolation
+from psycopg.errors import UniqueViolation, CheckViolation
 
 # verificar se usuário existe  
 def user_exists(username):
@@ -108,6 +108,18 @@ def get_schedule(course_id):
             return dict(cur.fetchall())
 
 # Presença: set_attendance(course_id, date, qtd_classes, absences) (com ON CONFLICT (course_id, date) DO UPDATE), get_attendances(course_id) e delete_attendance
+def set_attendance(course_id, date, qtd_classes, absences):
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "INSERT INTO attendance (course_id, date, qtd_classes, absences)"
+                    " VALUES (%s, %s, %s, %s) ON CONFLICT (course_id, date) DO UPDATE"
+                    " SET qtd_classes = EXCLUDED.qtd_classes, absences = EXCLUDED.absences",
+                    (course_id, date, qtd_classes, absences)
+                )
+    except CheckViolation:
+        return None
 # Feriados: add_holiday, get_holidays e delete_holiday
 # Matérias: update_course, delete_course e update_schedule
 # Ponte com a lógica de faltas: uma função que monta o dataclass Course de attendance.py a partir do banco. Ela juntaria get_course, get_schedule, as presenças e os feriados. Sem isso, day_info e course_stats nunca são usados
