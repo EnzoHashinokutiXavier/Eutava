@@ -106,3 +106,8 @@ def get_schedule(course_id):
                 "SELECT weekday, qtd_classes FROM schedule WHERE course_id = %s", (course_id, )
             )
             return dict(cur.fetchall())
+
+# Presença: set_attendance(course_id, date, qtd_classes, absences) (com ON CONFLICT (course_id, date) DO UPDATE), get_attendances(course_id) e delete_attendance
+# Feriados: add_holiday, get_holidays e delete_holiday
+# Matérias: update_course, delete_course e update_schedule
+# Ponte com a lógica de faltas: uma função que monta o dataclass Course de attendance.py a partir do banco. Ela juntaria get_course, get_schedule, as presenças e os feriados. Sem isso, day_info e course_stats nunca são usados

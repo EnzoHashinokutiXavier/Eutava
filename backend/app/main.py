@@ -25,6 +25,15 @@ def init_db_command():
     init_db()
     print("Banco initialized with success")
 
+#
+# !!! ALTERAR : 
+# @login_required para não repetir if "user_id" in session em cada rota
+# formulários POST nao tem proteção, usar Flask-WTF com CSRFProtect
+# erros OperationalError não são tratados, fazer @app.errorhandler global 
+# rotas para user_exists, email_exists, get_user_hash
+#
+
+
 # Pagina inicial, se não estiver logado redireciona para pagina de login
 @app.route("/")
 def home():
