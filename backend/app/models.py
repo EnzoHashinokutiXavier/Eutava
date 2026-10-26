@@ -144,5 +144,58 @@ def delete_attendance(course_id, date):
             return cur.rowcount == 1
         
 # Feriados: add_holiday, get_holidays e delete_holiday
+def add_holiday(start_date, end_date, description, user_id):
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "INSERT INTO holidays (user_id, description, start_date, end_date)"
+                    " VALUES (%s, %s, %s, %s)"
+                    " RETURNING holiday_id",
+                    (user_id, description, start_date, end_date)
+                )
+                return cur.fetchone()[0]
+    except CheckViolation:
+        return None
+
+def get_holidays(user_id):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT holiday_id, start_date, end_date, description FROM holidays WHERE user_id = %s"
+                " ORDER BY start_date",
+                (user_id, )
+            )
+            return cur.fetchall()
+
+def delete_holiday(user_id, holiday_id):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "DELETE FROM holidays WHERE holiday_id = %s AND user_id = %s",
+                (holiday_id, user_id)
+            )
+            return cur.rowcount == 1
 # Matérias: update_course, delete_course e update_schedule
+def update_course(course_id, user_id, name, absence_limit, default_presence, start_date, end_date):
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "UPDATE courses SET name = %s, absence_limit = %s, default_presence = %s, start_date = %s, end_date = %s"
+                    " WHERE  course_id = %s AND user_id = %s",
+                    (name, absence_limit, default_presence, start_date, end_date, course_id, user_id)
+                )
+                return cur.rowcount == 1
+    except CheckViolation:
+        return None
+
+def delete_course(course_id, user_id):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "DELETE FROM courses WHERE course_id = %s AND user_id = %s",
+                (course_id, user_id)
+            )
+            return cur.rowcount == 1
 # Ponte com a lógica de faltas: uma função que monta o dataclass Course de attendance.py a partir do banco. Ela juntaria get_course, get_schedule, as presenças e os feriados. Sem isso, day_info e course_stats nunca são usados

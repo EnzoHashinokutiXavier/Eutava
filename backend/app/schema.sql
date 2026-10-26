@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS attendance (
 
 CREATE TABLE IF NOT EXISTS holidays (
     holiday_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    course_id INTEGER NOT NULL REFERENCES courses(course_id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
     start_date DATE NOT NULL,
     end_date DATE NOT NULL,
     description TEXT NOT NULL,
