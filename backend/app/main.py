@@ -1,14 +1,16 @@
 from pathlib import Path
 from flask import Flask, render_template, redirect, url_for, request, session, flash
 from datetime import timedelta
-from functools import wraps
 from app.db import get_connection, init_db
+from app.decorators import login_required
+from app.routes import bp as courses_bp
 from app.models import create_user, get_user
 from app.security import hash_password, verify_password
 from psycopg.errors import OperationalError
 from dotenv import load_dotenv
 import os
 from email_validator import validate_email, EmailNotValidError
+from flask_wtf.csrf import CSRFProtect, CSRFError
 
 load_dotenv()
 
@@ -20,6 +22,10 @@ STATIC_DIR = BASE_DIR / "frontend" / "static"
 app = Flask(__name__, template_folder=str(TEMPLATES_DIR), static_folder=str(STATIC_DIR))
 app.secret_key = SECRET_KEY
 app.permanent_session_lifetime = timedelta(days=2) # quanto tempo armazena sessão para nao precisar logar toda vez que fechar o browser
+app.register_blueprint(courses_bp) # rotas de matérias (/courses) definidas em routes.py
+
+# CSRF é um ataque de outro site, CSRF token resolve gerando um token escondido no html
+csrf = CSRFProtect(app) # exige csrf_token válido em todo POST/PUT/PATCH/DELETE
 
 @app.cli.command("init-db")
 def init_db_command():
@@ -28,7 +34,6 @@ def init_db_command():
 
 #
 # !!! ALTERAR :
-# formulários POST nao tem proteção, usar Flask-WTF com CSRFProtect
 # rotas para user_exists, email_exists, get_user_hash
 #
 
@@ -43,15 +48,16 @@ def handle_db_error(error):
         return "Service unavailable", 503
     return render_template(template), 503
 
-# Decorator para rotas que exigem login, se não estiver logado redireciona para pagina de login
-def login_required(view):
-    @wraps(view) # @wraps: mantém o nome original da função. Sem ele todas as rotas protegidas ficariam com o nome wrapped_view, o que gera conflito no Flask e quebra o url_for
-    def wrapped_view(*args, **kwargs): # wrapped_view: função que envolve a view original, recebe os mesmos argumentos da view original
-        if "user_id" not in session: # se não estiver logado, redireciona para pagina de login
-            flash("You're not logged in!", "info")
-            return redirect(url_for("login"))
-        return view(*args, **kwargs) # chama a view original com os mesmos argumentos
-    return wrapped_view # retorna a função que envolve a view original, que será chamada no lugar da view original
+# Handler para token CSRF ausente/inválido/expirado: volta para o formulário com mensagem de erro, ou retorna 400 se não for rota de formulário
+@app.errorhandler(CSRFError)
+def handle_csrf_error(error):
+    app.logger.warning("CSRF error on %s: %s", request.path, error.description) # loga o erro de CSRF para debug, mas não mostra detalhes para o usuário
+    flash("Your session expired, please try again", "error")
+    templates = {"login": "login.html", "register": "register.html"}
+    template = templates.get(request.endpoint)
+    if template is None:
+        return "Bad request", 400
+    return render_template(template), 400
 
 # Pagina inicial
 @app.route("/")

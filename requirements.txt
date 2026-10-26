@@ -6,3 +6,4 @@ pytest
 pytest-mock
 argon2-cffi
 email-validator
+flask-wtf
