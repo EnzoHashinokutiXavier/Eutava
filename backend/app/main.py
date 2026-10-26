@@ -10,6 +10,7 @@ from psycopg.errors import OperationalError
 from dotenv import load_dotenv
 import os
 from email_validator import validate_email, EmailNotValidError
+from flask_wtf.csrf import CSRFProtect, CSRFError
 
 load_dotenv()
 
@@ -23,6 +24,9 @@ app.secret_key = SECRET_KEY
 app.permanent_session_lifetime = timedelta(days=2) # quanto tempo armazena sessão para nao precisar logar toda vez que fechar o browser
 app.register_blueprint(courses_bp) # rotas de matérias (/courses) definidas em routes.py
 
+# CSRF é um ataque de outro site, CSRF token resolve gerando um token escondido no html
+csrf = CSRFProtect(app) # exige csrf_token válido em todo POST/PUT/PATCH/DELETE
+
 @app.cli.command("init-db")
 def init_db_command():
     init_db()
@@ -30,7 +34,6 @@ def init_db_command():
 
 #
 # !!! ALTERAR :
-# formulários POST nao tem proteção, usar Flask-WTF com CSRFProtect
 # rotas para user_exists, email_exists, get_user_hash
 #
 
@@ -44,6 +47,17 @@ def handle_db_error(error):
     if template is None: # rotas que não tem template definido retornam apenas status 503
         return "Service unavailable", 503
     return render_template(template), 503
+
+# Handler para token CSRF ausente/inválido/expirado: volta para o formulário com mensagem de erro, ou retorna 400 se não for rota de formulário
+@app.errorhandler(CSRFError)
+def handle_csrf_error(error):
+    app.logger.warning("CSRF error on %s: %s", request.path, error.description) # loga o erro de CSRF para debug, mas não mostra detalhes para o usuário
+    flash("Your session expired, please try again", "error")
+    templates = {"login": "login.html", "register": "register.html"}
+    template = templates.get(request.endpoint)
+    if template is None:
+        return "Bad request", 400
+    return render_template(template), 400
 
 # Pagina inicial
 @app.route("/")

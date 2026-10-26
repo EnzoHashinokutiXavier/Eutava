@@ -9,6 +9,7 @@
             </div>
 
             <form method="post" novalidate>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <h2 class="h3 fw-medium mb-1 text-center">Welcome Back</h2>
                 <p class="text-body-secondary mb-4 text-center">Sign in to see where you stand.</p>
 
