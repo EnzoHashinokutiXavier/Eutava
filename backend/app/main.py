@@ -29,9 +29,19 @@ def init_db_command():
 #
 # !!! ALTERAR :
 # formulários POST nao tem proteção, usar Flask-WTF com CSRFProtect
-# erros OperationalError não são tratados, fazer @app.errorhandler global 
 # rotas para user_exists, email_exists, get_user_hash
 #
+
+# Handler global para falhas de conexão com o banco: re-renderiza a página da rota que falhou com status 503
+@app.errorhandler(OperationalError)
+def handle_db_error(error): 
+    app.logger.exception("Database error on %s", request.path)
+    flash("Internal server error", "error")
+    templates = {"login": "login.html", "register": "register.html"} # rotas com formulário voltam para a própria página
+    template = templates.get(request.endpoint)
+    if template is None: # rotas que não tem template definido retornam apenas status 503
+        return "Service unavailable", 503
+    return render_template(template), 503
 
 # Decorator para rotas que exigem login, se não estiver logado redireciona para pagina de login
 def login_required(view):
@@ -65,12 +75,8 @@ def login():
         flash("Please fill in all fields", "error")
         return render_template("login.html"), 400
     
-    try:    
-        user = get_user(email)
-    except OperationalError:
-        flash("Internal Server Error", "error")
-        return render_template("login.html"), 503
-    
+    user = get_user(email)
+
     if user is None or not verify_password(user[2], password):
         flash("Invalid email or password", "error")
         return render_template("login.html"), 401
@@ -111,11 +117,7 @@ def register():
         return render_template("register.html"), 400
 
     hashed = hash_password(password)
-    try:
-        user_id = create_user(name, email, hashed)
-    except OperationalError:
-        flash("Internal server error", "error")
-        return render_template("register.html"), 503
+    user_id = create_user(name, email, hashed)
 
     if user_id is None:
         flash("This email is already registered", "error")
