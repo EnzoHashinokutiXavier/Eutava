@@ -199,13 +199,15 @@ def delete_course(course_id, user_id):
                 (course_id, user_id)
             )
             return cur.rowcount == 1
-        
-def build_course(row, user_id):
+
+# construção e retorno do objeto course incluindo name, max_abs, default_present, start_date, end_date, schedule, attendances e holidays
+def build_course(row, user_holidays):
     course_id, name, absence_limit, default_presence, start_date, end_date = row
 
     holidays = []
 
-    for _, start, end, desc in get_holidays(user_id):
+    # recebe os holidays do usuario ja buscados no banco e monta a list sem o holiday_id
+    for _, start, end, desc in user_holidays:
         holidays.append((start, end, desc))
     
     return Course(
