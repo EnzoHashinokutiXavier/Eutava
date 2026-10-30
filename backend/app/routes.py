@@ -1,7 +1,6 @@
 from datetime import date
 from flask import Blueprint, render_template, session
 from app.decorators import login_required
-from app.decorators import login_required
 from app.models import get_courses, build_course
 from app.attendance import course_stats
 
@@ -16,7 +15,7 @@ def list_courses():
     today = date.today()
     courses = []
     for row in get_courses(session["user_id"]):
-        course = build_course(row)
+        course = build_course(row, session["user_id"])
         stats = course_stats(course, today, WARN_AT)  # {"used", "max", "status"}
         courses.append({"id": row[0], "name": course.name, **stats})
     return render_template("courses.html", courses=courses)

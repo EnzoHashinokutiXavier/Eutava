@@ -1,5 +1,6 @@
 from app.db import get_connection
 from psycopg.errors import UniqueViolation, CheckViolation
+from app.attendance import Course
 
 # verificar se usuário existe  
 def user_exists(username):
@@ -198,4 +199,22 @@ def delete_course(course_id, user_id):
                 (course_id, user_id)
             )
             return cur.rowcount == 1
-# Ponte com a lógica de faltas: uma função que monta o dataclass Course de attendance.py a partir do banco. Ela juntaria get_course, get_schedule, as presenças e os feriados. Sem isso, day_info e course_stats nunca são usados
+        
+def build_course(row, user_id):
+    course_id, name, absence_limit, default_presence, start_date, end_date = row
+
+    holidays = []
+
+    for _, start, end, desc in get_holidays(user_id):
+        holidays.append((start, end, desc))
+    
+    return Course(
+        name=name,
+        max_abs=absence_limit,
+        default_present=default_presence,
+        start_date=start_date,
+        end_date=end_date,
+        schedule=get_schedule(course_id),
+        attendances=get_attendances(course_id),
+        holidays=holidays
+    )
