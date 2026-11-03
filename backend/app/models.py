@@ -200,6 +200,22 @@ def delete_course(course_id, user_id):
             )
             return cur.rowcount == 1
 
+# Atualiza o schedule da matéria, deletando o antigo e inserindo o novo, retorna True se sucesso, False se violação de check
+def update_schedule(course_id, schedule):
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("DELETE FROM schedule WHERE course_id = %s", (course_id, ))
+                for weekday, qtd_classes in schedule.items():
+                    cur.execute(
+                        "INSERT INTO schedule (course_id, weekday, qtd_classes)"
+                        " VALUES (%s, %s, %s)",
+                        (course_id, weekday, qtd_classes)
+                    )
+                return True
+    except CheckViolation:
+        return False
+    
 # construção e retorno do objeto course incluindo name, max_abs, default_present, start_date, end_date, schedule, attendances e holidays
 def build_course(row, user_holidays):
     course_id, name, absence_limit, default_presence, start_date, end_date = row
