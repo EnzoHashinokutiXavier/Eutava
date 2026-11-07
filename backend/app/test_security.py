@@ -1,4 +1,4 @@
-from security import hash_password, verify_password, is_safe_string
+from security import hash_password, verify_password
 
 # teste para hash da password
 def test_hash_password():

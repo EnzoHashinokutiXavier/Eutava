@@ -111,3 +111,5 @@ def get_schedule(course_id):
 # Feriados: add_holiday, get_holidays e delete_holiday
 # Matérias: update_course, delete_course e update_schedule
 # Ponte com a lógica de faltas: uma função que monta o dataclass Course de attendance.py a partir do banco. Ela juntaria get_course, get_schedule, as presenças e os feriados. Sem isso, day_info e course_stats nunca são usados
+
+# build_course ainda nao existe, ja importado pelo routes.py. falta criar editar e excluir materias, pagina de detalhes do calendario. ligar presenca e feriados com o banco e a interface. operações para salvar, consultar e remover registros. 
