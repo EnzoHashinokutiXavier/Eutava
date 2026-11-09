@@ -6,7 +6,9 @@ function aplicarTema(tema) {
 
     // Troca o ícone: lua no modo claro, sol no modo escuro
     if (botaoTema) {
-        botaoTema.innerHTML = tema === 'dark' ? '<i class="bi bi-sun-fill"></i>' : '<i class="bi bi-moon-fill"></i>';
+        botaoTema.innerHTML = tema === 'dark'
+        ? '<i class="bi bi-sun-fill"></i> <span>Light mode</span>'
+        : '<i class="bi bi-moon-fill"></i> <span>Dark mode</span>';
     }
 }
 
@@ -19,3 +21,5 @@ if (botaoTema) {
         aplicarTema(temaAtual === 'dark' ? 'light' : 'dark');
     });
 }
+
+

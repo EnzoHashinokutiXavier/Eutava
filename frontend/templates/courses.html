@@ -1,7 +1,5 @@
-{% extends "base.html" %}
-{% block body %}
-{# container: centraliza e limita a largura do conteúdo; py-4: espaçamento em cima e embaixo #}
-<div class="container py-4">
+{% extends "layout.html" %}
+{% block main_content %}
   <h1>My courses</h1>
   {# percorre a lista "courses" enviada por render_template em list_courses; cada c é um dict com id, name, used, max e status #}
   {% for c in courses %}
@@ -21,5 +19,4 @@
   {% else %}
     <p>No courses yet.</p>
   {% endfor %}
-</div>
 {% endblock %}

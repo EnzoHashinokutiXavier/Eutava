@@ -4,7 +4,8 @@
 <div class="container">
     <div class="row min-vh-100 align-items-center justify-content-center">
         <div class="col-12 col-sm-8 col-md-6 col-lg-4 py-4">
-            <div class="text-center mb-4">
+            <div class="d-flex align-items-center justify-content-center gap-2 mb-4">
+                <span class="logo">E</span>
                 <span class="fs-2 fw-semibold">Eutava</span>
             </div>
 
@@ -13,11 +14,7 @@
                 <h2 class="h3 fw-medium mb-1 text-center">Welcome Back</h2>
                 <p class="text-body-secondary mb-4 text-center">Sign in to see where you stand.</p>
 
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% for category, msg in messages %}
-                        <div class="alert alert-{{ 'danger' if category == 'error' else category }} py-2" role="alert">{{ msg }}</div>
-                    {% endfor %}
-                {% endwith %}
+                {% include "components/flash.html" %}
 
                 <div class="vstack gap-3">
                     <div class="">
@@ -29,7 +26,7 @@
                     <button class="btn btn-primary btn-lg" type="submit">Sign In</button>
                     <p class="text-center text-body-secondary mb-0 mt-2">
                         New Here?
-                        <a href="/register">Create an account</a>
+                        <a href="{{ url_for('register') }}">Create an account</a>
                     </p>
                 </div>
             </form>

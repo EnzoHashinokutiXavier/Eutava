@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block body %}
+    <div class="app">
+        {% include "components/sidebar.html" %}
+        <main class="main-content">
+            <div class="page">
+                {% include "components/flash.html" %}
+                {% block main_content %}
+            
+                {% endblock %}
+            </div>
+        </main>
+    </div>
+{% endblock %}
