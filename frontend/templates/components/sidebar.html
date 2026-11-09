@@ -1,0 +1,39 @@
+<aside class="sidebar">
+    <a class="sidebar-brand" href="{{ url_for('home') }}">
+        <span class="logo">E</span> Eutava
+    </a>
+
+    <nav class="sidebar-menu">
+        <a href="{{ url_for('home') }}" class="{{ 'active' if request.endpoint == 'home' }}">
+            <i class="bi bi-calendar-check"></i> Today
+        </a>
+
+        <a href="{{ url_for('courses.list_courses') }}" class="{{ 'active' if request.blueprint == 'courses' }}">
+            <i class="bi bi-journal"></i> Courses
+        </a>
+
+        <a href="#" class="{{ 'active' if request.endpoint == 'holidays' }}">
+            <i class="bi bi-calendar-x"></i> Holidays
+        </a>
+
+        <a href="#" class="{{ 'active' if request.endpoint == 'settings' }}">
+            <i class="bi bi-gear"></i> Settings
+        </a>
+    </nav>
+
+    <div class="sidebar-footer">
+        <button id="btn-tema" class="btn-tema" type="button">
+            <i class="bi bi-moon-fill"></i> <span>Dark mode</span>
+        </button>
+
+        {# iniciais do nome: "Ana Souza" -> "AS" #}
+        {% set initials = session.user.split()[:2]|map('first')|join|upper %}
+        <div class="user-card">
+            <span class="avatar">{{ initials }}</span>
+            <span class="user-name">{{ session.user }}</span>
+            <a href="{{ url_for('logout') }}" class="btn-logout" title="Sign out">
+                <i class="bi bi-box-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</aside>
