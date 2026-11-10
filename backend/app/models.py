@@ -4,6 +4,12 @@ from app.attendance import Course
 
 # with get_connection() retorna a conexão com o banco de dados
 # with conn.cursor() cria um cursor para executar comandos SQL
+# cur.execute() executa o comando SQL no cursor
+# cur.fetchone() retorna a primeira linha do resultado da consulta
+# cur.fetchall() retorna todas as linhas do resultado da consulta
+
+# UniqueViolation é uma exceção lançada quando uma operação viola a restrição de unicidade do banco de dados
+# CheckViolation é uma exceção lançada quando uma operação viola a restrição de verificação do banco de dados
 
 # uso de ia : identificar funções não implementadas que poderiam ser necessárias para o funcionamento do sistema, encontrar falhas na lógica das funções e sugerir melhorias 
 
@@ -111,7 +117,7 @@ def get_schedule(course_id):
             cur.execute(
                 "SELECT weekday, qtd_classes FROM schedule WHERE course_id = %s", (course_id, )
             )
-            return dict(cur.fetchall())
+            return dict(cur.fetchall()) # dict cria dicionario a partir da lista de tuplas retornada pelo fetchall()
 
 # Presença: set_attendance(course_id, date, qtd_classes, absences) (com ON CONFLICT (course_id, date) DO UPDATE), get_attendances(course_id) e delete_attendance
 def set_attendance(course_id, date, qtd_classes, absences):
