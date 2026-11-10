@@ -13,6 +13,9 @@ TEST_START_DATE = date(2026, 2, 1)
 TEST_END_DATE = date(2026, 6, 30)
 TEST_SCHEDULE = {0: 2, 2: 1, 4: 3} # segunda: 2 aulas, quarta: 1 aula, sexta: 3 aulas
 
+# uso de ia : aprender a implementar corretamente os testes unitários para as funções do módulo models, garantindo que todas as funcionalidades sejam testadas corretamente e que os resultados esperados sejam validados. dicas para melhorar a organização dos testes. 
+# uso de ia : em uma busca de origem de falha em teste foi recomendado deixar as informações das variáveis no início do código para serem acessadas por todos os testes e podendo alterar facilmente os valores e não interligando os testes.
+
 # remove o usuario de teste caso tenha sobrado de uma execucao anterior
 def cleanup():
     user = get_user(TEST_EMAIL)
