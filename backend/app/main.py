@@ -12,11 +12,16 @@ import os
 from email_validator import validate_email, EmailNotValidError
 from flask_wtf.csrf import CSRFProtect, CSRFError
 
+# carrega variáveis de ambiente do .env para o ambiente do sistema operacional
 load_dotenv()
 
+# os lê variáveis de ambiente do arquivo .env
 SECRET_KEY = os.environ["SECRET_KEY"]
+# encontrar o caminho do diretório raiz do projeto, que é o pai do diretório backend
 BASE_DIR = Path(__file__).resolve().parent.parent.parent  # backend/app -> backend -> raiz do projeto
+# define os diretórios de templates e arquivos estáticos do frontend
 TEMPLATES_DIR = BASE_DIR / "frontend" / "templates"
+# define o diretório de arquivos estáticos do frontend
 STATIC_DIR = BASE_DIR / "frontend" / "static"
 
 app = Flask(__name__, template_folder=str(TEMPLATES_DIR), static_folder=str(STATIC_DIR))
@@ -27,6 +32,8 @@ app.register_blueprint(courses_bp) # rotas de matérias (/courses) definidas em 
 # CSRF é um ataque de outro site, CSRF token resolve gerando um token escondido no html
 csrf = CSRFProtect(app) # exige csrf_token válido em todo POST/PUT/PATCH/DELETE
 
+# uso de ia : a ia identificou brecha na segurança do site, que poderia permitir que um site malicioso fizesse requisições em nome do usuário logado, como deletar matérias ou marcar faltas. Para resolver isso, foi implementado o CSRF token, que é um token único gerado para cada sessão do usuário e incluído em todos os formulários. O servidor verifica esse token em cada requisição para garantir que a requisição veio do próprio site e não de um site externo.
+
 @app.cli.command("init-db")
 def init_db_command():
     init_db()
@@ -36,6 +43,8 @@ def init_db_command():
 # !!! ALTERAR :
 # rotas para user_exists, email_exists, get_user_hash
 #
+
+# uso de ia : ao buscar falhas a ia recomendou o uso de handlers globais para tratar erros de conexão com o banco de dados e erros de CSRF, garantindo que o usuário receba uma mensagem amigável e que o sistema não exponha detalhes técnicos. Além disso, a ia sugeriu a implementação de validação de email no registro de usuários para evitar emails inválidos e melhorar a segurança do sistema.
 
 # Handler global para falhas de conexão com o banco: re-renderiza a página da rota que falhou com status 503
 @app.errorhandler(OperationalError)

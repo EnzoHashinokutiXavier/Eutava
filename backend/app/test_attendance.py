@@ -7,6 +7,8 @@ from datetime import date
 
 # Calendar reference (Aug 2026): Mon 3, Tue 4, Wed 5, Thu 6, Mon 10, Wed 12, Mon 17, Wed 19
 
+# uso de ia : aprender a implementar corretamente os testes unitários para as funções do módulo attendance, garantindo que todas as funcionalidades sejam testadas corretamente e que os resultados esperados sejam validados. dicas para melhorar a organização dos testes
+
 def create_course(default_present=True):
     c = Course(
         name="Cálculo",

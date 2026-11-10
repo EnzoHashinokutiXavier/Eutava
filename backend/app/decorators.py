@@ -11,3 +11,5 @@ def login_required(view):
             return redirect(url_for("login"))
         return view(*args, **kwargs) # chama a view original com os mesmos argumentos
     return wrapped_view # retorna a função que envolve a view original, que será chamada no lugar da view original
+
+# uso de ia : inicialmente haviamos implementado em cada função uma lógica para verificar se o usuário estava logado, mas isso gerava código repetido e difícil de manter. Ao perguntar para ia como resolver este problema, foi recomendado o uso de decorador. Criamos login_required, conseguimos centralizar essa lógica em um único lugar, tornando o código mais limpo e fácil de entender. Além disso, o uso do @wraps (indicado pela ia) o que permite que as rotas protegidas mantenham seus nomes originais, evitando conflitos no Flask e facilitando a navegação entre as rotas.

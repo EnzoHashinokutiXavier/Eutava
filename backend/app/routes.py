@@ -4,6 +4,8 @@ from app.decorators import login_required
 from app.models import get_courses, get_holidays, build_course
 from app.attendance import course_stats
 
+# Blueprint foi escolhido para organizar as rotas relacionadas a matérias, separando-as das rotas de autenticação e de usuários.
+
 bp = Blueprint("courses", __name__, url_prefix="/courses")
 
 WARN_AT = 75  # % das faltas usadas a partir da qual o status vira "warn"
