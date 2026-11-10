@@ -2,6 +2,11 @@ from app.db import get_connection
 from psycopg.errors import UniqueViolation, CheckViolation
 from app.attendance import Course
 
+# with get_connection() retorna a conexão com o banco de dados
+# with conn.cursor() cria um cursor para executar comandos SQL
+
+# uso de ia : identificar funções não implementadas que poderiam ser necessárias para o funcionamento do sistema, encontrar falhas na lógica das funções e sugerir melhorias 
+
 # verificar se usuário existe  
 def user_exists(username):
     # se username existe no banco de dados
