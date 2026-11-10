@@ -1,5 +1,5 @@
 from datetime import date
-from flask import Blueprint, render_template, request, session
+from flask import Blueprint, flash, render_template, request, session, url_for
 from app.decorators import login_required
 from app.models import get_courses, get_holidays, build_course
 from app.attendance import course_stats
@@ -9,6 +9,7 @@ from app.attendance import course_stats
 bp = Blueprint("courses", __name__, url_prefix="/courses")
 
 WARN_AT = 75  # % das faltas usadas a partir da qual o status vira "warn"
+WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"] # dias da semana
 
 # GET /courses: listar matérias, com o status vindo de course_stats (safe/warn/risk)
 @bp.route("/")
@@ -28,8 +29,55 @@ def list_courses():
 @login_required
 def new_course():
     if request.method == "GET":
-        return render_template("new_course.html")
-    return "Not implemented", 501  # !!! implementar
+        return render_template("new_course.html", weekdays=WEEKDAYS) # envia formulario
+
+    # POST: pega os dados do form e cria a matéria
+    name = request.form.get("name", "").strip() # "" serve para evitar None, que quebraria o strip()
+    default_presence = request.form.get("default_presence") == "on" # checkbox só envia quando marcado 
+
+    # pega os dias da semana com quantidade de aulas, que vem do form como "Monday": "2", "Tuesday": "", etc
+    try:
+        absence_limit = int(request.form.get("absence_limit", "")) # limite de faltas 
+        start_date = date.fromisoformat(request.form.get("start_date", "")) # data de início
+        end_date = date.fromisoformat(request.form.get("end_date", "")) # data de fim
+        # fromisoformat lança ValueError se a string não estiver no formato YYYY-MM-DD
+        # uso de ia: indicação do uso de fromisformat para converter strings de datas do formulário em objetos date, garantindo que as datas sejam manipuladas corretamente no backend.
+
+    except ValueError:
+        flash("Please fill in all fields with valid values", "error") # mensagem de erro para o usuário
+        return render_template("new_course.html", weekdays=WEEKDAYS), 400 # volta para o form com status 400 (bad request)
+
+    # monta o schedule {weekday: qtd_classes} só com os dias que têm aula
+    # uso de ia : seguinte trecho da função foi adaptado de exemplo de ia para criar um dicionario
+    schedule = {}
+    for i in range(7): # para cada dia da semana (0=Monday, 6=Sunday)
+        qtd = request.form.get(f"classes_{i}", "").strip() # pega a quantidade de aulas do dia i, se houver
+        if qtd:
+            # verifica se é digito positivo, se não for, retorna erro
+            if not qtd.isdigit() or int(qtd) < 1: # primeiro verifica se é um dígito para não quebrar na comparação com numero 
+                flash("Number of classes must be a positive number", "error")
+                return render_template("new_course.html", weekdays=WEEKDAYS), 400
+            # se for válido, adiciona ao schedule
+            schedule[i] = int(qtd)
+
+    # série de validações para garantir que os dados do formulário são coerentes
+    if not name:
+        flash("Please enter the course name", "error")
+        return render_template("new_course.html", weekdays=WEEKDAYS), 400
+    if absence_limit < 0:
+        flash("Absence limit can't be negative", "error")
+        return render_template("new_course.html", weekdays=WEEKDAYS), 400
+    if end_date < start_date:
+        flash("End date must be after start date", "error")
+        return render_template("new_course.html", weekdays=WEEKDAYS), 400
+    if not schedule:
+        flash("Select at least one weekday with classes", "error")
+        return render_template("new_course.html", weekdays=WEEKDAYS), 400
+
+    # se tudo estiver ok, cria a matéria no banco de dados
+    create_course(session["user_id"], name, absence_limit, default_presence, start_date, end_date, schedule)
+    flash("Course created", "success")
+    return redirect(url_for("courses.list_courses"))  # endpoint do blueprint = "courses.<função>"
 
 # GET /courses/<id>: detalhe da matéria, com um calendário que usa day_info dia a dia
 @bp.route("/<int:course_id>")

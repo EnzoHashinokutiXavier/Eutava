@@ -1,6 +1,8 @@
 from argon2 import PasswordHasher, Type
 from argon2.exceptions import VerificationError, InvalidHashError
 
+# argon2 é um algoritmo de hashing de senha que é resistente a ataques de força bruta e ataques de dicionário. 
+
 ph = PasswordHasher(
     time_cost=3,
     memory_cost=65536,
