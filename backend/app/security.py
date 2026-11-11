@@ -14,13 +14,13 @@ ph = PasswordHasher(
 
 # Gera o hash pra senha
 def hash_password(password):
-    hashed = ph.hash(password)
+    hashed = ph.hash(password) # ph.hash() é o método que gera o hash da senha usando os parâmetros definidos na instância PasswordHasher.
     return hashed
 
 # Verifica a senha se o hash bate.
 def verify_password(hashed, password):
     try: 
-        ph.verify(hashed, password)
+        ph.verify(hashed, password) # ph.verify() é o método que verifica se a senha fornecida corresponde ao hash armazenado. 
         return True
-    except (VerificationError, InvalidHashError):
+    except (VerificationError, InvalidHashError): 
         return False

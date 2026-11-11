@@ -1,8 +1,9 @@
 from datetime import date
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 from app.decorators import login_required
-from app.models import get_courses, get_holidays, build_course, create_course
+from app.models import get_course, get_courses, get_holidays, build_course, create_course, get_schedule, update_course, update_schedule
 from app.attendance import course_stats
+from backend.app.test_models import course_id
 
 # decisao : Blueprint foi escolhido para organizar as rotas relacionadas a matérias, separando-as das rotas de autenticação e de usuários.
 
@@ -83,18 +84,82 @@ def new_course():
 @bp.route("/<int:course_id>")
 @login_required
 def course_detail(course_id):
+
+    row = get_course(course_id, session["user_id"]) # busca a matéria no banco de dados
+    if row is None:
+        flash("Course not found", "error")
+        return redirect(url_for("courses.list_courses"))
+
     today = date.today()
     user_holidays = get_holidays(session["user_id"])
-    course = build_course(get_courses(session["user_id"], course_id), user_holidays)
+    course = build_course(row, user_holidays)
     stats = course_stats(course, today, WARN_AT)
     return render_template("course_detail.html", course=course, stats=stats)
 
-# POST /courses/<id>/edit e /delete
-@bp.route("/<int:course_id>/edit", methods=["POST"])
+# GET/POST /courses/<id>/edit: editar matéria (nome, limite de faltas, presença padrão, datas e os dias da semana com quantidade de aulas)
+@bp.route("/<int:course_id>/edit", methods=["GET", "POST"])
 @login_required
 def edit_course(course_id):
-    # !!! implementar
-    return "Not implemented", 501
+    row = get_course(course_id, session["user_id"]) # busca a matéria no banco de dados
+
+    # se matéria não existir, volta para pagina de matérias com mensagem de erro
+    if row is None:
+        flash("Course not found", "error")
+        return redirect(url_for("courses.list_courses"))
+
+    # busca o schedule da matéria no banco de dados
+    schedule = get_schedule(course_id) 
+
+    # GET : renderiza o formulário com os dados da matéria
+    if request.method == "GET":
+        return render_template("edit_course.html", weekdays=WEEKDAYS, course=row, schedule=schedule)
+
+    # POST : pega os dados do form e atualiza a matéria
+
+    name = request.form.get("name", "").strip()
+    default_presence = request.form.get("default_presence") == "on"
+
+    try:
+        absence_limit = int(request.form.get("absence_limit", ""))
+        start_date = date.fromisoformat(request.form.get("start_date", ""))
+        end_date = date.fromisoformat(request.form.get("end_date", ""))
+    except ValueError:
+        flash("Please fill in all fields with valid values", "error")
+        return render_template("edit_course.html", weekdays=WEEKDAYS, course=row, schedule=schedule), 400
+
+    new_schedule = {}
+    for i in range(7):
+        qtd = request.form.get(f"classes_{i}", "").strip()
+        if qtd:
+            if not qtd.isdigit() or int(qtd) < 1:
+                flash("Number of classes must be a positive number", "error")
+                return redirect(url_for("courses.edit_course", course_id=course_id))
+            new_schedule[i] = int(qtd)
+
+    # se faltar algum campo, volta para pagina de edição do curso com mensagem de erro
+    if not name:
+        flash("Please enter the course name", "error")
+        return redirect(url_for("courses.edit_course", course_id=course_id))
+    if absence_limit < 0:
+        flash("Absence limit can't be negative", "error")
+        return redirect(url_for("courses.edit_course", course_id=course_id))
+    if end_date < start_date:
+        flash("End date must be after start date", "error")
+        return redirect(url_for("courses.edit_course", course_id=course_id))
+    if not new_schedule:
+        flash("Select at least one weekday with classes", "error")
+        return redirect(url_for("courses.edit_course", course_id=course_id))
+
+    # se tudo estiver ok, atualiza a matéria no banco de dados
+    ok = update_course(course_id, session["user_id"], name, absence_limit, default_presence, start_date, end_date)
+    if not ok or not update_schedule(course_id, new_schedule):
+        flash("Error updating course", "error")
+        return redirect(url_for("courses.edit_course", course_id=course_id))
+
+
+    flash("Course updated", "success")
+    return redirect(url_for("courses.course_detail", course_id=course_id))
+
 
 # POST /courses/<id>/attendance: marcar presença ou falta num dia
 @bp.route("/<int:course_id>/attendance", methods=["POST"])
