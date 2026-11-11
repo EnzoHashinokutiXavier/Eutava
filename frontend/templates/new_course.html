@@ -1,7 +1,108 @@
-{% extends "base.html" %}
+{% extends "layout.html" %}
 {% block title %}New Course{% endblock %}
-{% block body %}
+{% block main_content %}
+    <!-- o link de voltar para a lista de matérias -->
+    <a href="{{ url_for('courses.list_courses') }}" class="link-secondary link-underline-opacity-0 mb-3 d-inline-flex align-items-center gap-1">
+        <i class="bi bi-chevron-left"></i> Back
+    </a>
+    <h1 class="mb-5">New Course</h1>
 
+    <!-- Inicio do formulario de criação de matéria -->
+    <form method="post" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
+        <div class="mb-3">
+            <label for="course_name" class="section-title">Course Name</label>
+            <input type="text" class="form-control form-control-lg" id="course_name" name="name" placeholder="Enter course name" value="{{ request.form.get('name', '') }}" required>
+        </div>
 
+        <label class="section-title">Dates</label>
+
+        <!-- Datas de intervalo da matéria -->
+        <div class="mb-4 row g-2">
+            <div class="col-12 col-md-6">
+                <label for="start_date" class="form-label small text-body-secondary">Starts</label>
+                <input type="date" class="form-control form-control-lg" id="start_date" name="start_date" value="{{ request.form.get('start_date', '') }}" required>
+            </div>
+            <div class="col-12 col-md-6">
+                <label for="end_date" class="form-label small text-body-secondary">Ends</label>
+                <input type="date" class="form-control form-control-lg" id="end_date" name="end_date" value="{{ request.form.get('end_date', '') }}" required>
+            </div>
+        </div>
+
+        <!-- Campo dos dias da semana em que há aula -->
+        <div class="mb-3">        
+            <label class="section-title">Weekly Schedule</label>
+            <p class="text-body-secondary small">Pick the days you have this class and how many classes each day.</p>
+            <div class="day-pills">
+                {% for day in weekdays %}
+                    <input type="checkbox" class="btn-check" id="day_{{ loop.index0 }}" data-day="{{ loop.index0 }}" onchange="toggleDay(this.dataset.day)">
+                    <!-- loop.index0 representa o índice do dia da semana e day[:3] representa os três primeiros caracteres do nome do dia -->
+                    <label class="day-pill" for="day_{{ loop.index0 }}">{{ day[:3] }}</label>
+                {% endfor %}                
+            </div>
+
+            <!-- Campo de entrada para a quantidade de aulas por dia -->
+            <div class="schedule-box">
+                {% for day in weekdays %}
+                    <div class="day-row" id="row_{{ loop.index0 }}" hidden>
+                        <span>{{ day }}</span>
+                        <input type="number" name="classes_{{ loop.index0 }}" value="2" min="1" disabled> classes
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Limite de faltas -->
+        <label for="absence_limit" class="section-title">Absence Limit</label>
+        <div class="mb-3 absence-limit-box d-flex justify-content-between align-items-center">
+            <div class="">
+                <div>Max absences allowed</div>
+                <label class="text-body-secondary small">Enter the maximum number of absences allowed</label>
+            </div>
+            <div class="buttons-limits">
+                <button type="button" class="buttons-limits-btn" onclick="changeLimite(-1)">−</button>
+                <input type="number" id="absence_limit" name="absence_limit" value="{{ request.form.get('absence_limit', 20) }}" min="0" required>
+                <button type="button" class="buttons-limits-btn" onclick="changeLimite(1)">+</button>
+            </div>
+        </div>
+
+        <!-- Campo de configuração para o status padrão de presença -->
+        <label class="section-title">Days you don't log count as</label>
+        <div class="presence-toggle mb-2 ">
+            <input type="radio" class="btn-check" name="default_presence" id="presence_on" value="on" checked>
+            <label class="presence-toggle-option" for="presence_on">Present</label>
+            <input type="radio" class="btn-check" name="default_presence" id="presence_off" value="off">
+            <label class="presence-toggle-option" for="presence_off">Absent</label>
+        </div>
+        <p class="text-body-secondary small">Choose what happens on days you forget to log.</p>
+        <hr class="my-4">
+
+        <div class="finish-buttons">
+            <a class="btn btn-outline-secondary" href="{{ url_for('courses.list_courses') }}">Cancel</a>
+            <button type="submit" class="btn btn-success">Create Course</button>
+        </div>
+            
+    </form>
+    
+
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        // mostra a linha do dia quando marca, esconde quando desmarca
+        function toggleDay(i) {
+            const marcado = document.getElementById('day_' + i).checked;
+            const linha = document.getElementById('row_' + i);
+
+            linha.hidden = !marcado;
+            linha.querySelector('input').disabled = !marcado;  // desabilitado não é enviado pro Flask
+        }
+
+        // função para aumentar/diminuir o limite de faltas na interface
+        function changeLimite(step) {
+            const input = document.getElementById('absence_limit');
+            input.value = Math.max(0, Number(input.value) + step);
+        }
+    </script>
 {% endblock %}
