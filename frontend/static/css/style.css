@@ -178,6 +178,164 @@ body {
     color: var(--eutava-red);
 }
 
+.section-title {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--bs-secondary-color);
+}
+
+.day-pills {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.day-pill {
+    padding: 10px 18px;
+    border-radius: 10px;
+    background: var(--bs-tertiary-bg);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-check:checked + .day-pill {
+    background: var(--eutava-green);
+    color: #062b21;
+}
+
+.day-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+}
+
+.day-row span {
+    flex: 1;
+}
+
+.day-row input {
+    width: 60px;
+    padding: 6px;
+    border: none;
+    border-radius: 8px;
+    background: var(--bs-secondary-bg);
+    color: var(--bs-body-color);
+    font-weight: 600;
+    text-align: center;
+    border-bottom: 1px solid var(--bs-border-color);
+
+}
+
+.schedule-box {
+    background: var(--bs-tertiary-bg);
+    border-radius: 14px;
+    padding: 0 16px;
+}
+
+.day-row input::-webkit-inner-spin-button,
+.day-row input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.absence-limit-box {
+    background: var(--bs-tertiary-bg);
+    border-radius: 14px;
+    padding: 18px 16px;
+}
+
+.buttons-limits {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.buttons-limits-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 8px;
+    background: var(--bs-secondary-bg);
+    color: var(--bs-body-color);
+}
+
+.buttons-limits input {
+    width: 60px;
+    border: none;
+    background: none;
+    color: var(--bs-body-color);
+    font-weight: 600;
+    text-align: center;
+}
+
+.buttons-limits input:focus {
+    outline: none;                                   /* tira o contorno branco */
+    border-radius: 6px;
+    background: var(--bs-secondary-bg);              /* fundo leve enquanto está editando */
+}
+
+.buttons-limits input::-webkit-inner-spin-button,
+.buttons-limits input::-webkit-outer-spin-button {
+    -webkit-appearance: none;  /* tira as setinhas */
+    margin: 0;
+}
+
+.select-box-defaultpresence {
+    background: var(--bs-tertiary-bg);
+    border-radius: 14px;
+    padding: 18px 16px;
+}
+
+.presence-toggle {
+    display: inline-flex;
+    padding: 4px;
+    border-radius: 12px;
+    background: var(--bs-tertiary-bg);
+}
+
+.presence-toggle-option {
+    padding: 8px 24px;
+    border-radius: 9px;
+    color: var(--bs-secondary-color);
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+}
+
+.btn-check:checked + .presence-toggle-option {
+    background: var(--bs-secondary-bg);
+    color: var(--bs-body-color);
+}
+
+/* Cancel e Create course alinhados à direita */
+.finish-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.sidebar-add {
+    border-radius: 8px;
+    margin-top: 24px;
+    padding: 10px;
+    font-weight: 600;
+    color: #062b21;                 
+    background: var(--eutava-green);
+    padding-left: 25px;
+    text-decoration: none;
+
+}
+
+.sidebar-add:hover {
+    color: #062b21;
+    background: #0eb68b;             /* verde um pouco mais escuro */
+}
+
 
 /* ========================================================= 
    Mobile
@@ -262,5 +420,16 @@ body {
     .avatar,
     .user-name {
         display: none;                /* no celular, só ícones */
+    }
+
+    .day-pills {
+        gap: 6px;
+    }
+
+    .day-pill {
+        flex: 1;
+        min-width: 0;        /* deixa o botão encolher até o limite do texto */
+        padding: 10px 0;
+        text-align: center;
     }
 }
