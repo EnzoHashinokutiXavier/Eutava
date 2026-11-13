@@ -174,7 +174,7 @@ def mark_attendance(course_id):
 
     # pegar dados do form
     try:
-        day = date.fromisoformat(request.form.get("day", "")) # date.fromisoformat lança ValueError se a string não estiver no formato YYYY-MM-DD
+        day = date.fromisoformat(request.form.get("date", "")) # date.fromisoformat lança ValueError se a string não estiver no formato YYYY-MM-DD
         qtd_classes = int(request.form.get("qtd_classes", ""))
         absences = int(request.form.get("absences", "0")) # 0 se não for enviado
     except ValueError:
