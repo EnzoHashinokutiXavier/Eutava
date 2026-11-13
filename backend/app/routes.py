@@ -216,5 +216,41 @@ def mark_attendance(course_id):
 @bp.route("/<int:course_id>/holidays", methods=["POST"])
 @login_required
 def add_holidays(course_id):
-    # !!! implementar
-    return "Not implemented", 501
+
+    # verificar se a matéria existe e pertence ao usuário logado
+    row = get_course(course_id, session["user_id"])
+    # se não existir, volta para pagina de matérias com mensagem de erro
+    if row is None:
+        flash("Course not found", "error")
+        return redirect(url_for("courses.list_courses"))
+
+    # pega dados do form
+    description = request.form.get("description", "").strip()
+    try:
+        start_date = date.fromisoformat(request.form.get("start_date", ""))
+        end_raw = request.form.get("end_date", "").strip()
+        # se preencheu end_raw converte texto com a data em um objeto
+        if end_raw: # string vazia conta como False, preenchida como True
+            end_date = date.fromisoformat(end_raw)
+        else:
+            end_date = start_date
+    # se nao preenchido, volta para pagina de detalhes da matéria com mensagem de erro
+    except ValueError:
+        flash("Please fill in all fields with valid values", "error")
+        return redirect(url_for("courses.course_detail", course_id=course_id))
+
+    # validações iguais às do banco (description NOT NULL, end_date >= start_date)
+    if not description:
+        flash("Please enter a description", "error")
+        return redirect(url_for("courses.course_detail", course_id=course_id))
+    if end_date < start_date:
+        flash("End date must be after start date", "error")
+        return redirect(url_for("courses.course_detail", course_id=course_id))
+
+    # salva no banco (feriado é do usuário, vale para todas as matérias)
+    if add_holiday(start_date, end_date, description, session["user_id"]) is None:
+        flash("Error saving holiday", "error")
+        return redirect(url_for("courses.course_detail", course_id=course_id))
+
+    flash("Holiday added", "success")
+    return redirect(url_for("courses.course_detail", course_id=course_id))
