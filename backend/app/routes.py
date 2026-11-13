@@ -1,9 +1,8 @@
 from datetime import date
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 from app.decorators import login_required
-from app.models import get_course, get_courses, get_holidays, build_course, create_course, get_schedule, update_course, update_schedule
+from app.models import get_course, get_courses, get_holidays, build_course, create_course, get_schedule, set_attendance, update_course, update_schedule, delete_attendance
 from app.attendance import course_stats
-from backend.app.test_models import course_id
 
 # decisao : Blueprint foi escolhido para organizar as rotas relacionadas a matérias, separando-as das rotas de autenticação e de usuários.
 
@@ -165,8 +164,53 @@ def edit_course(course_id):
 @bp.route("/<int:course_id>/attendance", methods=["POST"])
 @login_required
 def mark_attendance(course_id):
-    # !!! implementar
-    return "Not implemented", 501
+
+    # verificar se a matéria existe e pertence ao usuário logado
+    row = get_course(course_id, session["user_id"])
+    # se não existir, volta para pagina de matérias com mensagem de erro
+    if row is None:
+        flash("Course not found", "error")
+        return redirect(url_for("courses.list_courses"))
+
+    # pegar dados do form
+    try:
+        day = date.fromisoformat(request.form.get("day", "")) # date.fromisoformat lança ValueError se a string não estiver no formato YYYY-MM-DD
+        qtd_classes = int(request.form.get("qtd_classes", ""))
+        absences = int(request.form.get("absences", "0")) # 0 se não for enviado
+    except ValueError:
+        flash("Please fill in all fields with valid values", "error")
+        return redirect(url_for("courses.course_detail", course_id=course_id))
+
+    # verificar se a data está dentro do período da matéria
+    start_date = row[4] # start_date vem do banco de dados
+    end_date = row[5] # end_date vem do banco de dados
+    # se a data estiver fora do período, volta para pagina de detalhes da matéria com mensagem de erro
+    if day < start_date or day > end_date:
+        flash("Date is outside the course period", "error")
+        return redirect(url_for("courses.course_detail", course_id=course_id))
+
+    # botão limpar remove registro e volta ao comportamento padrão (presença padrão da matéria)
+    if request.form.get("action") == "clear":
+        delete_attendance(course_id, day)
+        flash("Attendance cleared for this day", "success")
+        return redirect(url_for("courses.course_detail", course_id=course_id))
+
+    # validação iguais as do banco (qtd_classes >= 0, absences >= 0, absences <= qtd_classes
+    if qtd_classes < 0:  
+        flash("Number of classes can't be negative", "error")
+        return redirect(url_for("courses.course_detail", course_id=course_id))
+    if absences < 0 or absences > qtd_classes:
+        flash("Number of absences must be between 0 and number of classes", "error")
+        return redirect(url_for("courses.course_detail", course_id=course_id))
+
+    # salva no banco (atualiza se já existir, insere se não existir)
+    if set_attendance(course_id, day, qtd_classes, absences) is None:
+        flash("Error saving attendance", "error")
+        return redirect(url_for("courses.course_detail", course_id=course_id))
+
+    # se tudo der certo
+    flash("Attendance saved", "success")
+    return redirect(url_for("courses.course_detail", course_id=course_id))
 
 # POST /courses/<id>/holidays: adicionar feriados e recessos
 @bp.route("/<int:course_id>/holidays", methods=["POST"])
