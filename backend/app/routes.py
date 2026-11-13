@@ -1,7 +1,7 @@
 from datetime import date
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 from app.decorators import login_required
-from app.models import get_course, get_courses, get_holidays, build_course, create_course, get_schedule, set_attendance, update_course, update_schedule, delete_attendance
+from app.models import get_course, get_courses, get_holidays, build_course, create_course, get_schedule, set_attendance, update_course, update_schedule, delete_attendance, add_holiday
 from app.attendance import course_stats
 
 # decisao : Blueprint foi escolhido para organizar as rotas relacionadas a matérias, separando-as das rotas de autenticação e de usuários.
