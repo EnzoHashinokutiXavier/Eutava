@@ -123,7 +123,9 @@ def register():
     # Validar email
     try:
         # validate_email retorna um objeto com o email validado, caso seja valido, caso contrario lança EmailNotValidError
-        info = validate_email(email, check_deliverability=True) # True para verificar se o email é entregável, False para apenas validar o formato
+        info = validate_email(email, check_deliverability=False) 
+        # !!!! True faz uma consulta DNS a cada cadastro. Sem internet, ou se o DNS falhar, o cadastro de um email válido é recusado. Em desenvolvimento ou nos testes, vale usar False !!!!!!!!
+
         email = info.email # o gmail não é verificado se é ativo, apenas se o formato é valido com dominio existente 
     except EmailNotValidError:
         flash("Please enter a valid email address", "error")
