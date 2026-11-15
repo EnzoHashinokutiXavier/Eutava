@@ -115,6 +115,11 @@ def register():
     email = request.form.get("email", "").strip().lower()
     password = request.form.get("password", "")
 
+    # uso de ia : identificar que verificação dos campos vazios depois de validar email resultaria em mensagem de erro incorreta
+    if (len(name) == 0) or (len(email) == 0) or (len(password) == 0):
+        flash("Please fill in all fields", "error")
+        return render_template("register.html"), 400
+
     # Validar email
     try:
         # validate_email retorna um objeto com o email validado, caso seja valido, caso contrario lança EmailNotValidError
@@ -122,10 +127,6 @@ def register():
         email = info.email # o gmail não é verificado se é ativo, apenas se o formato é valido com dominio existente 
     except EmailNotValidError:
         flash("Please enter a valid email address", "error")
-        return render_template("register.html"), 400
-
-    if (len(name) == 0) or (len(email) == 0) or (len(password) == 0):
-        flash("Please fill in all fields", "error")
         return render_template("register.html"), 400
 
     if (len(password) < 8):
