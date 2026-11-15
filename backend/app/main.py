@@ -1,7 +1,7 @@
 from pathlib import Path
 from flask import Flask, render_template, redirect, url_for, request, session, flash
 from datetime import timedelta
-from app.db import get_connection, init_db
+from app.db import init_db
 from app.decorators import login_required
 from app.routes import bp as courses_bp
 from app.models import create_user, get_user, get_user_hash, update_user_hash
