@@ -4,7 +4,7 @@ from datetime import timedelta
 from app.db import init_db
 from app.decorators import login_required
 from app.routes import bp as courses_bp
-from app.models import create_user, get_user, get_user_hash, update_user_hash
+from app.models import create_user, get_user, get_user_hash, update_user_hash, delete_user
 from app.security import hash_password, verify_password
 from psycopg.errors import OperationalError
 from dotenv import load_dotenv
@@ -51,7 +51,7 @@ def init_db_command():
 def handle_db_error(error): 
     app.logger.exception("Database error on %s", request.path)
     flash("Internal server error", "error")
-    templates = {"login": "login.html", "register": "register.html", "change_password": "change_password.html"}
+    templates = {"login": "login.html", "register": "register.html", "change_password": "change_password.html", "delete_account": "delete_account.html"}
     # rotas com formulário voltam para a própria página
     template = templates.get(request.endpoint)
     if template is None: # rotas que não tem template definido retornam apenas status 503
@@ -63,7 +63,7 @@ def handle_db_error(error):
 def handle_csrf_error(error):
     app.logger.warning("CSRF error on %s: %s", request.path, error.description) # loga o erro de CSRF para debug, mas não mostra detalhes para o usuário
     flash("Your session expired, please try again", "error")
-    templates = {"login": "login.html", "register": "register.html", "change_password": "change_password.html"}
+    templates = {"login": "login.html", "register": "register.html", "change_password": "change_password.html", "delete_account": "delete_account.html"}
     template = templates.get(request.endpoint)
     if template is None:
         return "Bad request", 400
@@ -205,6 +205,40 @@ def change_password():
     update_user_hash(user_id, hash_password(new))
     flash("Password changed successfully", "success")
     return redirect(url_for("home"))
+
+# Excluir conta: GET mostra a página de confirmação, POST confirma com a senha e apaga
+@login_required
+def delete_account():
+    # GET
+    if request.method == "GET":
+        return render_template("delete_account.html")
+
+    # POST
+    password = request.form.get("password", "") # senha do formulario
+    user_id = session["user_id"] # id da sessão 
+    hashed = get_user_hash(user_id) # hash do usuario
+
+    # se nao digitar senha 
+    if len(password) == 0:
+        flash("Please enter your password", "error")
+        return render_template("delete_account.html"), 400
+
+    # sessão aponta para um usuário que não existe mais (conta excluída / banco recriado)
+    if hashed is None:
+            session.clear()
+            flash("Your session is no longer valid, please log in again", "error")
+            return redirect(url_for("login"))
+
+    # se a senha estiver errada
+    if not verify_password(hashed, password):
+        flash("Incorrect password", "error")
+        return render_template("delete_account.html"), 401
+
+    # deleta usuário
+    delete_user(user_id)
+    session.clear()
+    flash("Your account was deleted", "info")
+    return redirect(url_for("login"))
 
 # Limpa sessão
 @app.route("/logout")
