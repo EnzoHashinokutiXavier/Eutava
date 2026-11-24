@@ -1,4 +1,4 @@
-from attendance import Course, holiday_desc, day_info, course_stats
+from attendance import Course, holiday_desc, day_info, course_stats, holiday_classes
 from datetime import date
 
 # How to run tests:
@@ -108,3 +108,21 @@ def test_course_stats_risk():
 
     # Aug 3, 5, 10, 12, 17, 19 auto-missed: 6 days x 2 classes = 12 absences
     assert course_stats(c, today, 50) == {"used": 12, "max": 10, "status": "risk"}
+
+def test_holiday_classes():
+    c = create_course()  # aulas segunda (2) e quarta (2), de 01/08 a 15/12
+    c.holidays = [
+        (date(2026, 7, 20), date(2026, 8, 4), "Recesso"),     # começa antes do curso: só conta seg 03/08
+        (date(2026, 9, 1), date(2026, 9, 1), "Terça"),        # terça não tem aula
+        (date(2026, 10, 12), date(2026, 10, 14), "Semana"),   # seg 12 e qua 14
+        (date(2026, 12, 20), date(2026, 12, 31), "Natal"),    # depois do curso
+    ]
+    assert holiday_classes(c) == [
+        {"day": date(2026, 8, 3), "desc": "Recesso", "classes": 2},
+        {"day": date(2026, 10, 12), "desc": "Semana", "classes": 2},
+        {"day": date(2026, 10, 14), "desc": "Semana", "classes": 2},
+    ]
+
+def test_holiday_classes_none():
+    c = create_course()
+    assert holiday_classes(c) == []

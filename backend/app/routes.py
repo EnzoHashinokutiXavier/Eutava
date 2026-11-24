@@ -2,7 +2,7 @@ from datetime import date
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 from app.decorators import login_required
 from app.models import get_course, get_courses, get_holidays, build_course, create_course, get_schedule, set_attendance, update_course, update_schedule, delete_attendance, add_holiday
-from app.attendance import course_stats
+from app.attendance import course_stats, holiday_classes
 
 # decisao : Blueprint foi escolhido para organizar as rotas relacionadas a matérias, separando-as das rotas de autenticação e de usuários.
 
@@ -21,7 +21,7 @@ def list_courses():
     for row in get_courses(session["user_id"]):
         course = build_course(row, user_holidays)
         stats = course_stats(course, today, WARN_AT)  # {"used", "max", "status"}
-        courses.append({"id": row[0], "name": course.name, **stats})
+        courses.append({"id": row[0], "name": course.name, "schedule": course.schedule, **stats})
     return render_template("courses.html", courses=courses)
 
 # GET/POST /courses/new: criar matéria (nome, limite de faltas, presença padrão, datas e os dias da semana com quantidade de aulas)
@@ -93,7 +93,7 @@ def course_detail(course_id):
     user_holidays = get_holidays(session["user_id"])
     course = build_course(row, user_holidays)
     stats = course_stats(course, today, WARN_AT)
-    return render_template("course_detail.html", course=course, stats=stats)
+    return render_template("course_detail.html", course=course, stats=stats, cancelled=holiday_classes(course))
 
 # GET/POST /courses/<id>/edit: editar matéria (nome, limite de faltas, presença padrão, datas e os dias da semana com quantidade de aulas)
 @bp.route("/<int:course_id>/edit", methods=["GET", "POST"])
@@ -180,38 +180,38 @@ def mark_attendance(course_id):
         absences = int(request.form.get("absences", "0")) # 0 se não for enviado
     except ValueError:
         flash("Please fill in all fields with valid values", "error")
-        return redirect(url_for("courses.course_detail", course_id=course_id))
+        return redirect(url_for("home"))
 
     # verificar se a data está dentro do período da matéria
     start_date = row[4] # start_date vem do banco de dados
     end_date = row[5] # end_date vem do banco de dados
-    # se a data estiver fora do período, volta para pagina de detalhes da matéria com mensagem de erro
+    # se a data estiver fora do período, volta para a home com mensagem de erro
     if day < start_date or day > end_date:
         flash("Date is outside the course period", "error")
-        return redirect(url_for("courses.course_detail", course_id=course_id))
+        return redirect(url_for("home"))
 
     # botão limpar remove registro e volta ao comportamento padrão (presença padrão da matéria)
     if request.form.get("action") == "clear":
         delete_attendance(course_id, day)
         flash("Attendance cleared for this day", "success")
-        return redirect(url_for("courses.course_detail", course_id=course_id))
+        return redirect(url_for("home"))
 
     # validação iguais as do banco (qtd_classes >= 0, absences >= 0, absences <= qtd_classes
     if qtd_classes < 0:  
         flash("Number of classes can't be negative", "error")
-        return redirect(url_for("courses.course_detail", course_id=course_id))
+        return redirect(url_for("home"))
     if absences < 0 or absences > qtd_classes:
         flash("Number of absences must be between 0 and number of classes", "error")
-        return redirect(url_for("courses.course_detail", course_id=course_id))
+        return redirect(url_for("home"))
 
     # salva no banco (atualiza se já existir, insere se não existir)
     if set_attendance(course_id, day, qtd_classes, absences) is None:
         flash("Error saving attendance", "error")
-        return redirect(url_for("courses.course_detail", course_id=course_id))
+        return redirect(url_for("home"))
 
     # se tudo der certo
     flash("Attendance saved", "success")
-    return redirect(url_for("courses.course_detail", course_id=course_id))
+    return redirect(url_for("home"))
 
 # POST /courses/<id>/holidays: adicionar feriados e recessos
 @bp.route("/<int:course_id>/holidays", methods=["POST"])
