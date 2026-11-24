@@ -1,22 +1,59 @@
 {% extends "layout.html" %}
+{% block title %}Courses{% endblock %}
 {% block main_content %}
-  <h1>My courses</h1>
-  {# percorre a lista "courses" enviada por render_template em list_courses; cada c é um dict com id, name, used, max e status #}
-  {% for c in courses %}
-    {# card do Bootstrap para cada matéria; mb-2: margem embaixo para separar os cards #}
-    <div class="card mb-2">
-      {# d-flex + justify-content-between: nome fica à esquerda e o badge à direita #}
-      <div class="card-body d-flex justify-content-between">
-        <span>{{ c.name }}</span>
-        {# o dict converte o status de course_stats na cor do Bootstrap: safe -> verde, warn -> amarelo, risk -> vermelho #}
-        <span class="badge text-bg-{{ {'safe': 'success', 'warn': 'warning', 'risk': 'danger'}[c.status] }}">
-          {# faltas usadas / limite de faltas da matéria #}
-          {{ c.used }}/{{ c.max }}
-        </span>
+  <h1 class="mb-4">My courses</h1>
+
+  <!-- cor do Bootstrap e texto para cada status de course_stats -->
+  {% set colors = {'safe': 'success', 'warn': 'warning', 'risk': 'danger'} %}
+  {% set labels = {'safe': 'Safe', 'warn': 'Warning', 'risk': 'At risk'} %}
+  <!-- iniciais dos dias, com 0 = segunda (igual ao weekday() do Python) -->
+  {% set days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'] %}
+
+  <!-- percorre a lista "courses" enviada por list_courses; cada c é um dict com id, name, schedule, used, max e status -->
+  <div class="row g-3">
+    {% for c in courses %}
+      {% set color = colors[c.status] %}
+      <!-- porcentagem usada, limitada a 100 para a barra não vazar; se o limite for 0, a barra fica cheia -->
+      {% set pct = ([c.used / c.max * 100, 100] | min) if c.max else 100 %}
+      {% set left = c.max - c.used %}
+
+      <!-- 3 cards por linha no desktop, 2 no tablet, 1 no celular -->
+      <div class="col-md-6 col-lg-4">
+        <!-- o card inteiro é o link -->
+        <a href="{{ url_for('courses.course_detail', course_id=c.id) }}" class="course-card">
+
+          <div class="d-flex align-items-start justify-content-between gap-2 mb-3">
+            <span class="course-card-name">{{ c.name }}</span>
+            <span class="badge text-bg-{{ color }}">{{ labels[c.status] }}</span>
+          </div>
+
+          <div class="mini-days mb-3">
+            {% for d in days %}
+              <span class="mini-day {{ 'active' if c.schedule.get(loop.index0) }}">{{ d }}</span>
+            {% endfor %}
+          </div>
+
+          <div class="progress progress-thin mb-2" role="progressbar" aria-label="Absences used" aria-valuenow="{{ c.used }}" aria-valuemin="0" aria-valuemax="{{ c.max }}">
+            <div class="progress-bar bg-{{ color }}" style="width: {{ pct }}%"></div>
+          </div>
+
+          <div class="d-flex justify-content-between small text-secondary">
+            <span>{{ c.used }}/{{ c.max }} absences</span>
+            <span>
+              {% if left > 0 %}{{ left }} left{% elif left == 0 %}None left{% else %}{{ -left }} over{% endif %}
+            </span>
+          </div>
+        </a>
       </div>
-    </div>
-  {# o else do for do Jinja só roda quando a lista está vazia (usuário ainda não tem matérias) #}
-  {% else %}
-    <p>No courses yet.</p>
-  {% endfor %}
+
+    <!-- o else do for do Jinja só roda quando a lista está vazia (usuário ainda não tem matérias) #} -->
+    {% else %}
+      <div class="col-12">
+        <div class="info-card text-center py-5">
+          <p class="mb-3 text-secondary">No courses yet.</p>
+          <a href="{{ url_for('courses.new_course') }}" class="btn btn-success">Create your first course</a>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
 {% endblock %}

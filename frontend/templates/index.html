@@ -1,8 +1,137 @@
 {% extends "layout.html" %}
-
+{% block title %}Today{% endblock %}
 {% block main_content %}
-     
-    <h1>Today</h1>
-    <p>Welcome back, {{ user }}!</p>
+
+    <h1 class="mb-1">Today</h1>
+    <p class="text-secondary mb-4">{{ today.strftime('%A, %d/%m/%Y') }} · Welcome back, {{ user }}!</p>
+
+    <!-- como mostrar cada resultado já marcado (tipos vêm do day_info em attendance.py) -->
+    {% set results = {
+        'present': ('success', 'Present'),
+        'partial': ('warning', 'Partial'),
+        'missed':  ('danger',  'Missed'),
+        'noclass': ('secondary', 'No class'),
+    } %}
+
+    <div class="row g-4">
+
+        <!-- ---------- coluna da esquerda: aulas de hoje ---------- -->
+        <div class="col-lg-8">
+            <span class="section-title">Today's classes</span>
+
+            <!-- courses: matérias com aula hoje; cada c tem id, name, type, schedules (qtd de aulas), absences e, se for feriado, desc -->
+            {% for c in courses %}
+                <div class="today-row">
+                    <div class="today-info">
+                        <a href="{{ url_for('courses.course_detail', course_id=c.id) }}" class="today-name">{{ c.name }}</a>
+                        <span class="small text-secondary">
+                            {% if c.type == 'holiday' %}
+                                Holiday · {{ c.desc }}
+                            {% elif c.type == 'partial' %}
+                                Missed {{ c.absences }} of {{ c.schedules }} classes
+                            {% else %}
+                                {{ c.schedules }} class{{ 'es' if c.schedules != 1 }}
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    {% if c.type == 'pending' %}
+                        <!-- ainda não marcado: cada botão manda um valor diferente de "absences" no mesmo form -->
+                        <form action="{{ url_for('courses.mark_attendance', course_id=c.id) }}" method="post" class="d-flex gap-2">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="date" value="{{ today.isoformat() }}">
+                            <input type="hidden" name="qtd_classes" value="{{ c.schedules }}">
+                            <button type="submit" name="absences" value="0" class="btn btn-outline-success btn-sm">
+                                <i class="bi bi-check-lg"></i> Present
+                            </button>
+
+                            <!-- falta parcial só faz sentido com 2 aulas ou mais: um item do menu para cada quantidade possível -->
+                            {% if c.schedules > 1 %}
+                                <div class="dropdown">
+                                    <button type="button" class="btn btn-outline-warning btn-sm dropdown-toggle" data-bs-toggle="dropdown">
+                                        Partial
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        {% for n in range(1, c.schedules) %}
+                                            <li>
+                                                <button type="submit" name="absences" value="{{ n }}" class="dropdown-item">
+                                                    Missed {{ n }} of {{ c.schedules }}
+                                                </button>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            {% endif %}
+
+                            <button type="submit" name="absences" value="{{ c.schedules }}" class="btn btn-outline-danger btn-sm">
+                                <i class="bi bi-x-lg"></i> Missed
+                            </button>
+                        </form>
+
+                    {% elif c.type in results %}
+                        <!-- já marcado: mostra o resultado e um botão para desfazer (action=clear apaga o registro do dia) -->
+                        {% set color, label = results[c.type] %}
+                        <form action="{{ url_for('courses.mark_attendance', course_id=c.id) }}" method="post" class="d-flex align-items-center gap-2">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="date" value="{{ today.isoformat() }}">
+                            <input type="hidden" name="qtd_classes" value="0">
+                            <span class="badge text-bg-{{ color }}">{{ label }}</span>
+                            <button type="submit" name="action" value="clear" class="btn btn-link btn-sm text-secondary p-0" title="Undo">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                            </button>
+                        </form>
+
+                    {% elif c.type == 'holiday' %}
+                        <span class="badge text-bg-secondary">No class</span>
+                    {% endif %}
+                </div>
+            {% else %}
+                <div class="info-card text-center py-5">
+                    <i class="bi bi-cup-hot fs-2 text-secondary"></i>
+                    <p class="mb-0 mt-2 text-secondary">No classes today.</p>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- ---------- coluna da direita: todas as matérias --------- -->
+        <div class="col-lg-4">
+            <span class="section-title">All courses</span>
+
+            <!-- all_courses: todas as matérias, já ordenadas pela rota (menos faltas sobrando primeiro) -->
+            <div class="overview-card">
+                {% for c in all_courses %}
+                    <!-- porcentagem usada, limitada a 100 para a barra não vazar; se o limite for 0, a barra fica cheia -->
+                    {% set pct = ([c.used / c.max * 100, 100] | min) if c.max else 100 %}
+
+                    <!-- status-safe / status-warn / status-risk definem a cor do ponto, do texto e da barra -->
+                    <a href="{{ url_for('courses.course_detail', course_id=c.id) }}" class="overview-row status-{{ c.status }}">
+                        <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                            <span class="d-flex align-items-center gap-2">
+                                <span class="status-dot"></span>
+                                {{ c.name }}
+                            </span>
+                            <span class="status-text">
+                                {% if c.left > 0 %}
+                                    {{ c.left }} absence{{ 's' if c.left != 1 }} left
+                                {% elif c.left == 0 %}
+                                    No absences left
+                                {% else %}
+                                    {{ -c.left }} over the limit
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="status-bar">
+                            <div class="status-bar-fill" style="width: {{ pct }}%"></div>
+                        </div>
+                    </a>
+                {% else %}
+                    <p class="mb-0 p-3 text-secondary">
+                        No courses yet. <a href="{{ url_for('courses.new_course') }}">Create one</a>
+                    </p>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
 
 {% endblock %}
