@@ -1,6 +1,6 @@
 import pytest
 from datetime import date
-from models import user_exists, email_exists, create_user, get_user, get_user_hash, update_user_hash, delete_user, create_course, get_course, get_courses, get_schedule 
+from app.models import user_exists, email_exists, create_user, get_user, get_user_hash, update_user_hash, delete_user, create_course, get_course, get_courses, get_schedule 
 
 TEST_NAME = "test_user"
 TEST_EMAIL = "test_email"
