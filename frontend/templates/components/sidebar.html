@@ -12,7 +12,7 @@
             <i class="bi bi-journal"></i> Courses
         </a>
 
-        <a href="#" class="{{ 'active' if request.endpoint == 'holidays' }}">
+        <a href="{{ url_for('holidays.list_holidays') }}" class="{{ 'active' if request.blueprint == 'holidays' }}">
             <i class="bi bi-calendar-x"></i> Holidays
         </a>
 

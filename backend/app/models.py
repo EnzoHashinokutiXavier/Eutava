@@ -188,6 +188,22 @@ def delete_holiday(user_id, holiday_id):
                 (holiday_id, user_id)
             )
             return cur.rowcount == 1
+
+# verifica se já existe feriado que cubra algum dia do intervalo 
+def holiday_overlaps(user_id, start_date, end_date):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT 1 FROM holidays WHERE user_id = %s AND start_date <= %s AND end_date >= %s",
+                (user_id, end_date, start_date)
+            )
+            found = cur.fetchone()  # uma linha se achou, None se não achou
+            
+    if found is None:
+        return False  # nenhum feriado no caminho
+    else:
+        return True   # já existe feriado nesse intervalo
+    
 # Matérias: update_course, delete_course e update_schedule
 def update_course(course_id, user_id, name, absence_limit, default_presence, start_date, end_date):
     try:
