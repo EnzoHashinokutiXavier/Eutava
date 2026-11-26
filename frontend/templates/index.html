@@ -27,6 +27,8 @@
                         <span class="small text-secondary">
                             {% if c.type == 'holiday' %}
                                 Holiday · {{ c.desc }}
+                            {% elif c.type == 'noclass' %}
+                                No class today
                             {% elif c.type == 'partial' %}
                                 Missed {{ c.absences }} of {{ c.schedules }} classes
                             {% else %}
@@ -65,6 +67,11 @@
 
                             <button type="submit" name="absences" value="{{ c.schedules }}" class="btn btn-outline-danger btn-sm">
                                 <i class="bi bi-x-lg"></i> Missed
+                            </button>
+
+                            <!-- não teve aula hoje (professor faltou, aula cancelada): action=noclass salva o dia com 0 aulas -->
+                            <button type="submit" name="action" value="noclass" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-slash-circle"></i> No class
                             </button>
                         </form>
 

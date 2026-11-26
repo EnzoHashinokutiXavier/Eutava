@@ -196,6 +196,11 @@ def mark_attendance(course_id):
         flash("Attendance cleared for this day", "success")
         return redirect(url_for("home"))
 
+    # botão "No class" que identifica que não teve aula no dia, salva com 0 aulas (day_info trata como "noclass")
+    if request.form.get("action") == "noclass":
+        qtd_classes = 0
+        absences = 0
+
     # validação iguais as do banco (qtd_classes >= 0, absences >= 0, absences <= qtd_classes
     if qtd_classes < 0:  
         flash("Number of classes can't be negative", "error")
