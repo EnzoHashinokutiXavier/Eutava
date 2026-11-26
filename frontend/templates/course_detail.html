@@ -1,0 +1,133 @@
+{% extends "layout.html" %}
+{% block title %}Course Detail{% endblock %}
+{% block main_content %}
+    <a href="{{ url_for('courses.list_courses') }}" class="link-secondary link-underline-opacity-0 mb-3 d-inline-flex align-items-center gap-1">
+            <i class="bi bi-chevron-left"></i> Courses
+    </a>
+
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div>
+            <h3 class="mb-1">{{ course.name }}</h3>
+            <p class="mb-0 text-secondary">{{ course.start_date.strftime('%d/%m/%Y') }} – {{ course.end_date.strftime('%d/%m/%Y') }}</p>
+        </div>
+        <a href="{{ url_for('courses.edit_course', course_id=request.view_args.course_id) }}" class="btn-edit">
+            <i class="bi bi-pencil"></i> Edit Course
+        </a>
+    </div>
+
+    <!--  cor do Bootstrap e texto para cada status de course_stats -->
+    {% set color = {'safe': 'success', 'warn': 'warning', 'risk': 'danger'}[stats.status] %}
+    {% set label = {'safe': 'Safe', 'warn': 'Warning', 'risk': 'At risk'}[stats.status] %}
+    <!-- porcentagem usada, limitada a 100 para a barra não vazar -->
+    {% set pct = ([stats.used / stats.max * 100, 100] | min) if stats.max else 100 %}
+    {% set left = stats.max - stats.used %}
+
+    <div class="row g-4 mt-1">
+        <div class="col-md-6">
+            <div class="info-card h-100">
+                <span class="section-title">Absences</span>
+
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div>
+                        <span class="fs-2 fw-semibold">{{ stats.used }}</span>
+                        <span class="text-secondary">/ {{ stats.max }}</span>
+                    </div>
+                    <span class="badge text-bg-{{ color }}">{{ label }}</span>
+                </div>
+
+                <div class="progress mb-2" role="progressbar" aria-label="Absences used" aria-valuenow="{{ stats.used }}" aria-valuemin="0" aria-valuemax="{{ stats.max }}">
+                    <div class="progress-bar bg-{{ color }}" style="width: {{ pct }}%"></div>
+                </div>
+
+                <p class="mb-0 text-secondary">
+                    {% if left > 0 %}
+                        {{ left }} absence{{ 's' if left != 1 }} left
+                    {% elif left == 0 %}
+                        No absences left
+                    {% else %}
+                        Limit exceeded by {{ -left }}
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="info-card h-100">
+                <span class="section-title">Weekly schedule</span>
+
+                <!--  schedule é um dict {dia_da_semana: qtd_aulas} -->
+                {% set weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] %}
+                <div class="week-grid mb-3">
+                    {% for name in weekdays %}
+                        {% set qtd = course.schedule.get(loop.index0, 0) %}
+                        <div class="week-day {{ 'active' if qtd }}">
+                            <span class="week-day-name">{{ name }}</span>
+                            <span class="week-day-qtd">{{ qtd if qtd else '–' }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                {% set total = course.schedule.values() | sum %}
+                <p class="mb-0 text-secondary">{{ total }} class{{ 'es' if total != 1 }} per week</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="info-card mt-4">
+        <span class="section-title">Classes cancelled by holidays</span>
+
+        <!-- cancelled vem de holiday_classes (attendance.py): dias de aula da matéria que caem em feriado -->
+        {% for c in cancelled %}
+            <div class="history-row">
+                <span class="history-date">
+                    {{ c.day.strftime('%d/%m/%Y') }}
+                    <span class="text-secondary">{{ c.day.strftime('%a') }}</span>
+                </span>
+                <span class="text-secondary">{{ c.desc }}</span>
+                <span class="badge text-bg-secondary">{{ c.classes }} class{{ 'es' if c.classes != 1 }}</span>
+            </div>
+        {% else %}
+            <p class="mb-0 text-secondary">No classes fall on a holiday.</p>
+        {% endfor %}
+
+        {% if cancelled %}
+            {% set lost = cancelled | sum(attribute='classes') %}
+            <p class="mb-0 mt-2 small text-secondary">{{ lost }} class{{ 'es' if lost != 1 }} cancelled in total.</p>
+        {% endif %}
+    </div>
+
+    <div class="info-card mt-4">
+        <span class="section-title">Attendance history</span>
+
+        <!-- uso de ia: ordenar o resultado -->
+        <!-- attendances é um dict {data: (aulas, faltas)}; dictsort ordena pela data e reverse deixa a mais recente em cima -->
+        {% for day, (classes, absences) in course.attendances | dictsort(reverse=True) %}
+            {# mesma regra do day_info em attendance.py #}
+            {% if classes == 0 %}
+                {% set s_color, s_label = 'secondary', 'No class' %}
+            {% elif absences == 0 %}
+                {% set s_color, s_label = 'success', 'Present' %}
+            {% elif absences >= classes %}
+                {% set s_color, s_label = 'danger', 'Missed' %}
+            {% else %}
+                {% set s_color, s_label = 'warning', 'Partial' %}
+            {% endif %}
+
+            <div class="history-row">
+                <span class="history-date">
+                    {{ day.strftime('%d/%m/%Y') }}
+                    <span class="text-secondary">{{ day.strftime('%a') }}</span>
+                </span>
+                {% if classes %}
+                    <span class="text-secondary">{{ absences }}/{{ classes }} absence{{ 's' if absences != 1 }}</span>
+                {% endif %}
+                <span class="badge text-bg-{{ s_color }}">{{ s_label }}</span>
+            </div>
+        {% else %}
+            <p class="mb-0 text-secondary">No attendance marked yet.</p>
+        {% endfor %}
+    </div>
+    
+{% endblock %}
+
+{% block scripts %}
+{% endblock %}
