@@ -10,9 +10,14 @@
             <h3 class="mb-1">{{ course.name }}</h3>
             <p class="mb-0 text-secondary">{{ course.start_date.strftime('%d/%m/%Y') }} – {{ course.end_date.strftime('%d/%m/%Y') }}</p>
         </div>
-        <a href="{{ url_for('courses.edit_course', course_id=request.view_args.course_id) }}" class="btn-edit">
-            <i class="bi bi-pencil"></i> Edit Course
-        </a>
+        <div class="d-flex gap-3">
+            <a href="{{ url_for('holidays.list_holidays')}}" class="btn-edit">
+                <i class="bi bi-calendar-x"></i> Manage Holidays
+            </a>
+            <a href="{{ url_for('courses.edit_course', course_id=request.view_args.course_id) }}" class="btn-edit">
+                <i class="bi bi-pencil"></i> Edit Course
+            </a>
+        </div>
     </div>
 
     <!--  cor do Bootstrap e texto para cada status de course_stats -->
@@ -75,7 +80,7 @@
     <div class="info-card mt-4">
         <span class="section-title">Classes cancelled by holidays</span>
 
-        <!-- cancelled vem de holiday_classes (attendance.py): dias de aula da matéria que caem em feriado -->
+        <!-- cancelled vem de holiday_classes (attendance.py) - dias de aula da matéria que caem em feriado -->
         {% for c in cancelled %}
             <div class="history-row">
                 <span class="history-date">

@@ -4,15 +4,13 @@
     <a href="{{ url_for('home') }}" class="link-secondary link-underline-opacity-0 mb-3 d-inline-flex align-items-center gap-1">
         <i class="bi bi-chevron-left"></i> Back
     </a>
-    <h2 class="mb-5">Holidays</h2>
+    <h2 class="mb-4">Holidays</h2>
 
     <!-- formulário de cadastro -->
     <div class="info-card mb-4">
         <span class="section-title">Add holiday</span>
-
         <form action="{{ url_for('holidays.create_holiday') }}" method="post" novalidate>
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-
             <div class="row g-2 align-items-end">
                 <div class="col-12 col-md-4">
                     <label for="description" class="form-label small text-body-secondary">Description</label>
@@ -37,7 +35,6 @@
 
     <div class="info-card">
         <span class="section-title">Your holidays</span>
-
         <!-- holidays vem de get_holidays, já ordenada pela data de início -->
         {% for holiday_id, start, end, desc in holidays %}
             <div class="history-row">
