@@ -6,6 +6,7 @@
 :root {
     --eutava-green: #10c99a;
     --eutava-red: #ef4444;
+    --eutava-amber: #f5a524;
 }
 
 /* Tema escuro. O claro usa o padrão do Bootstrap */
@@ -336,6 +337,235 @@ body {
     background: #0eb68b;             /* verde um pouco mais escuro */
 }
 
+.btn-edit {
+    border: 1px solid var(--bs-secondary-color);
+    gap: 10px;
+    display: inline-flex;
+    align-items: center;
+    border-radius: 6px;
+    padding: 6px 10px 6px;
+    text-decoration: none;
+    color: var(--bs-body-color);
+    transition: all 0.1s ease;
+}
+
+.btn-edit:hover {
+    background-color: var(--bs-border-color);
+
+}
+
+/* =========================================================
+   Home (index.html)
+*/
+
+/* uma linha por matéria com aula hoje */
+.today-row {
+    display: flex;
+    flex-wrap: wrap;                 /* no celular os botões descem para a linha de baixo */
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px;
+    margin-bottom: 10px;
+    border-radius: 14px;
+    background: var(--bs-tertiary-bg);
+}
+
+.today-info {
+    display: flex;
+    flex-direction: column;          /* nome em cima, quantidade de aulas embaixo */
+}
+
+.today-name {
+    font-weight: 600;
+    color: var(--bs-body-color);
+    text-decoration: none;
+}
+
+.today-name:hover {
+    color: var(--eutava-green);
+}
+
+/* --- Card "All courses" --- */
+
+.overview-card {
+    border-radius: 14px;
+    background: var(--bs-tertiary-bg);
+    overflow: hidden;                /* o hover das linhas respeita os cantos arredondados */
+}
+
+/* cada linha é um link para a matéria */
+.overview-row {
+    display: block;
+    padding: 14px 16px;
+    border-top: 1px solid var(--bs-border-color);
+    color: var(--bs-body-color);
+    font-weight: 500;
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+}
+
+.overview-row:first-child {
+    border-top: none;                /* sem linha em cima da primeira */
+}
+
+.overview-row:hover {
+    background: var(--bs-secondary-bg);
+    color: var(--bs-body-color);
+}
+
+/* a classe de status só define a cor; ponto, texto e barra usam a mesma variável */
+.status-safe { --status-color: var(--eutava-green); }
+.status-warn { --status-color: var(--eutava-amber); }
+.status-risk { --status-color: var(--eutava-red); }
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--status-color);
+}
+
+.status-text {
+    color: var(--status-color);
+    font-size: 0.9rem;
+    white-space: nowrap;             /* "10 absences left" não quebra em duas linhas */
+}
+
+.status-bar {
+    height: 4px;
+    border-radius: 4px;
+    background: var(--bs-border-color);   /* trilho */
+}
+
+.status-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    background: var(--status-color);
+}
+
+
+/* =========================================================
+   Lista de matérias (courses.html)
+*/
+
+/* o card inteiro é um <a>, por isso display: block e sem sublinhado */
+.course-card {
+    display: block;
+    height: 100%;                            /* cards da mesma linha com a mesma altura */
+    padding: 18px 16px;
+    border: 1px solid transparent;           /* borda invisível, para o hover não "pular" 1px */
+    border-radius: 14px;
+    background: var(--bs-tertiary-bg);
+    color: var(--bs-body-color);
+    text-decoration: none;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.course-card:hover {
+    border-color: rgba(16, 201, 154, 0.5);   /* verde do projeto, meio transparente */
+    color: var(--bs-body-color);
+    transform: translateY(-2px);             /* sobe um pouquinho */
+}
+
+.course-card-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+/* iniciais dos dias da semana */
+.mini-days {
+    display: flex;
+    gap: 4px;
+}
+
+.mini-day {
+    width: 24px;
+    height: 24px;
+    display: grid;
+    place-items: center;
+    border-radius: 6px;
+    background: var(--bs-secondary-bg);
+    color: var(--bs-secondary-color);
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.mini-day.active {
+    background: rgba(16, 201, 154, 0.15);
+    color: var(--eutava-green);
+}
+
+/* barra de progresso mais fina que a padrão do Bootstrap (16px) */
+.progress-thin {
+    --bs-progress-height: 6px;
+}
+
+
+/* =========================================================
+   Detalhes da matéria (course_detail.html)
+*/
+
+/* card da página de detalhes (faltas, etc.) */
+.info-card {
+    background: var(--bs-tertiary-bg);
+    border-radius: 14px;
+    padding: 18px 16px;
+}
+
+/* faixa com os 7 dias da semana no card de horário */
+.week-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);   /* 7 colunas de largura igual */
+    gap: 6px;
+}
+
+.week-day {
+    display: flex;
+    flex-direction: column;      /* nome do dia em cima, quantidade embaixo */
+    align-items: center;
+    gap: 4px;
+    padding: 10px 0;
+    border-radius: 10px;
+    background: var(--bs-secondary-bg);
+    color: var(--bs-secondary-color);
+}
+
+/* dia com aula */
+.week-day.active {
+    background: rgba(16, 201, 154, 0.15);
+    color: var(--eutava-green);
+}
+
+.week-day-name {
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.week-day-qtd {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+/* uma linha por dia marcado no histórico de presenças */
+.history-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-top: 1px solid var(--bs-border-color);
+}
+
+.history-row:first-of-type {
+    border-top: none;            /* sem linha em cima da primeira */
+}
+
+.history-date {
+    flex: 1;                     /* ocupa o espaço e empurra o resto para a direita */
+    font-weight: 500;
+}
+
 
 /* ========================================================= 
    Mobile
@@ -399,9 +629,24 @@ body {
 
     /* --- Rodapé vira só ícones, à direita do logo (linha 1) --- */
 
+    /* Add Course vira um quadrado só com o "+", do tamanho do logo */
+    .sidebar-add {
+        width: 32px;
+        height: 32px;
+        display: grid;
+        place-items: center;          /* centraliza o "+" */
+        margin-top: 0;
+        margin-left: auto;            /* empurra ele e o rodapé para a direita */
+        padding: 0;
+    }
+
+    .sidebar-add span {
+        display: none;                /* esconde o texto "Add Course" */
+    }
+
     .sidebar-footer {
         margin-top: 0;
-        margin-left: auto;            /* empurra para a direita */
+        margin-left: 8px;             /* o Add Course já empurrou tudo; aqui é só o espaço entre eles */
         flex-direction: row;
         align-items: center;
     }

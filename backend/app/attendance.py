@@ -72,3 +72,19 @@ def course_stats(course, today, warn_at):
     else:
         return {"used": used, "max": course.max_abs, "status": "safe"}
 
+
+# dias de aula da matéria que caem em feriado (aulas canceladas)
+# retorna uma lista de {"day", "desc", "classes"} em ordem de data
+def holiday_classes(course):
+    result = []
+    day = course.start_date
+
+    while day <= course.end_date:
+        classes = course.schedule.get(day.weekday(), 0)
+        if classes:
+            desc = holiday_desc(course, day)
+            if desc:
+                result.append({"day": day, "desc": desc, "classes": classes})
+        day += timedelta(days=1)
+
+    return result
