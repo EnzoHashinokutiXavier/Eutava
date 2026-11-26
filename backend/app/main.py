@@ -4,6 +4,7 @@ from datetime import timedelta
 from app.db import init_db
 from app.decorators import login_required
 from app.routes import bp as courses_bp
+from app.routes import bp as holydays_bp
 from app.models import create_user, get_user, get_user_hash, update_user_hash, delete_user
 from app.security import hash_password, verify_password
 from psycopg.errors import OperationalError
@@ -28,6 +29,7 @@ app = Flask(__name__, template_folder=str(TEMPLATES_DIR), static_folder=str(STAT
 app.secret_key = SECRET_KEY
 app.permanent_session_lifetime = timedelta(days=2) # quanto tempo armazena sessão para nao precisar logar toda vez que fechar o browser
 app.register_blueprint(courses_bp) # rotas de matérias (/courses) definidas em routes.py
+app.register_blueprint(holydays_bp) # rotas de feriados (/holidays) definidas em holidays.py
 
 # CSRF é um ataque de outro site, CSRF token resolve gerando um token escondido no html
 csrf = CSRFProtect(app) # exige csrf_token válido em todo POST/PUT/PATCH/DELETE
