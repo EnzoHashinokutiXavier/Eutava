@@ -5,7 +5,7 @@ from app.db import init_db
 from app.decorators import login_required
 from app.routes import bp as courses_bp, WARN_AT
 from app.holidays import bp as holidays_bp
-from app.models import create_user, get_user, get_user_hash, update_user_hash, delete_user, get_courses, get_holidays, build_course
+from app.models import create_user, get_user, get_user_hash, get_user_info, update_user_hash, update_user_name, update_user_email, delete_user, get_courses, get_holidays, build_course
 from app.attendance import day_info, course_stats
 from app.security import hash_password, verify_password
 from psycopg.errors import OperationalError
@@ -54,7 +54,8 @@ def init_db_command():
 def handle_db_error(error): 
     app.logger.exception("Database error on %s", request.path)
     flash("Internal server error", "error")
-    templates = {"login": "login.html", "register": "register.html", "change_password": "change_password.html", "delete_account": "delete_account.html"}
+    # decisao : só login e register têm template próprio. As rotas da conta (settings, nome, email, senha, excluir) não entram aqui porque settings.html precisa de name e email, que o handler não tem
+    templates = {"login": "login.html", "register": "register.html"}
     # rotas com formulário voltam para a própria página
     template = templates.get(request.endpoint)
     if template is None: # rotas que não tem template definido retornam apenas status 503
@@ -66,7 +67,7 @@ def handle_db_error(error):
 def handle_csrf_error(error):
     app.logger.warning("CSRF error on %s: %s", request.path, error.description) # loga o erro de CSRF para debug, mas não mostra detalhes para o usuário
     flash("Your session expired, please try again", "error")
-    templates = {"login": "login.html", "register": "register.html", "change_password": "change_password.html", "delete_account": "delete_account.html"}
+    templates = {"login": "login.html", "register": "register.html"}
     template = templates.get(request.endpoint)
     if template is None:
         return "Bad request", 400
@@ -166,15 +167,18 @@ def register():
     flash("Account created", "success")
     return redirect(url_for("login"))
 
-# Troca de senha : GET mostra o formulario, POST valida e atualiza
-@app.route("/account/password", methods=["POST", "GET"])
-@login_required
-def change_password(): 
-    # GET
-    if request.method == "GET":
-        return render_template("change_password.html")
+# uso de ia : análise do código e identificação de problemas que levaram as seguintes decisões
+# decisao : os formulários da conta (nome, email, senha e excluir conta) ficam todos em settings.html, então as rotas abaixo só aceitam POST e o GET é a rota settings.
+# decisao : em caso de erro as rotas fazem redirect para settings em vez de render_template(..., 400). Motivos:
+# - settings.html precisa de name e email, e a rota GET settings já busca esses dados no banco (não precisa repetir em cada erro)
+# - padrão Post/Redirect/Get: se o usuário apertar F5 depois do erro, o navegador não reenvia o formulário com as senhas
+# - o flash sobrevive ao redirect, então a mensagem de erro aparece normalmente
+# - ponto negativo: a resposta vira 302 em vez de 400/401. Para o usuário não muda nada, só para quem olha o status HTTP
 
-    # POST
+# Troca de senha : POST valida e atualiza, sempre volta para settings (o formulário fica em settings.html)
+@app.route("/account/password", methods=["POST"])
+@login_required
+def change_password():
     current = request.form.get("current_password", "") # usuario digita senha atual
     new = request.form.get("new_password", "") # usuario digita nova senha
     confirm = request.form.get("confirm_password", "") # digita novamente nova senha 
@@ -182,13 +186,13 @@ def change_password():
     # verificação campo vazio
     if len(current) == 0:
         flash("Please enter the current password", "error")
-        return render_template("change_password.html"), 400
+        return redirect(url_for("settings"))
     if len(new) == 0:
         flash("Please enter the new password", "error")
-        return render_template("change_password.html"), 400
+        return redirect(url_for("settings"))
     if len(confirm) == 0:
         flash("Please confirm new password", "error")
-        return render_template("change_password.html"), 400
+        return redirect(url_for("settings"))
 
     # pega usuário da sessão e hash da senha dele
     user_id = session["user_id"]
@@ -205,55 +209,133 @@ def change_password():
     # se a senha atual estiver errada
     if not verify_password(hashed, current):
         flash("Current password is incorrect", "error")
-        return render_template("change_password.html"), 401
+        return redirect(url_for("settings"))
 
     # se senha menor que oito caracteres
     if len(new) < 8:
         flash("Password must be at least 8 characters long", "error")
-        return render_template("change_password.html"), 400
+        return redirect(url_for("settings"))
 
     # se digitar errado a confirmação
     if new != confirm:
         flash("Passwords do not match", "error")
-        return render_template("change_password.html"), 400
+        return redirect(url_for("settings"))
 
     # se a nova senha for a senha antiga
     if verify_password(hashed, new):
         flash("New password must be different from the current one", "error")
-        return render_template("change_password.html"), 400
+        return redirect(url_for("settings"))
 
-    # atualiza senha e redireciona para home
+    # atualiza senha e volta para settings
     update_user_hash(user_id, hash_password(new))
     flash("Password changed successfully", "success")
-    return redirect(url_for("home"))
+    return redirect(url_for("settings"))
 
-# Excluir conta: GET mostra a página de confirmação, POST confirma com a senha e apaga
+# Configurações : mostra nome e email atuais e os formulários da conta
+@app.route("/account/settings")
 @login_required
-def delete_account():
-    # GET
-    if request.method == "GET":
-        return render_template("delete_account.html")
+def settings():
+    info = get_user_info(session["user_id"])
+    if info is None:  # mesmo caso de sessão órfã de change_password
+        session.clear()
+        flash("Your session is no longer valid, please log in again", "error")
+        return redirect(url_for("login"))
+    name, email = info
+    return render_template("settings.html", name=name, email=email)
 
-    # POST
-    password = request.form.get("password", "") # senha do formulario
-    user_id = session["user_id"] # id da sessão 
-    hashed = get_user_hash(user_id) # hash do usuario
+# Troca de nome : POST valida e atualiza, sempre volta para settings
+@app.route("/account/name", methods=["POST"])
+@login_required
+def change_name():
+    name = request.form.get("name", "").strip()
 
-    # se nao digitar senha 
-    if len(password) == 0:
-        flash("Please enter your password", "error")
-        return render_template("delete_account.html"), 400
+    if len(name) == 0:
+        flash("Please enter your name", "error")
+        return redirect(url_for("settings"))
 
-    # sessão aponta para um usuário que não existe mais (conta excluída / banco recriado)
+    # rowcount 0 = usuário não existe mais (sessão órfã)
+    if not update_user_name(session["user_id"], name):
+        session.clear()
+        flash("Your session is no longer valid, please log in again", "error")
+        return redirect(url_for("login"))
+
+    # decisao : o nome também fica guardado em session["user"] (definido no login) e a home mostra esse valor, então é atualizado aqui para o nome novo aparecer sem precisar logar de novo
+    session["user"] = name
+    flash("Name changed successfully", "success")
+    return redirect(url_for("settings"))
+
+# Troca de email : POST valida e atualiza, sempre volta para settings
+# decisao : trocar o email exige a senha atual, porque o email é o login da conta. Sem isso, alguém com acesso ao navegador logado poderia trocar o email e tomar a conta
+@app.route("/account/email", methods=["POST"])
+@login_required
+def change_email():
+    email = request.form.get("email", "").strip().lower()
+    password = request.form.get("password", "")
+
+    # verificação campo vazio
+    if len(email) == 0 or len(password) == 0:
+        flash("Please fill in all fields", "error")
+        return redirect(url_for("settings"))
+
+    user_id = session["user_id"]
+    hashed = get_user_hash(user_id)
+
+    # sessão aponta para um usuário que não existe mais
     if hashed is None:
-            session.clear()
-            flash("Your session is no longer valid, please log in again", "error")
-            return redirect(url_for("login"))
+        session.clear()
+        flash("Your session is no longer valid, please log in again", "error")
+        return redirect(url_for("login"))
 
     # se a senha estiver errada
     if not verify_password(hashed, password):
         flash("Incorrect password", "error")
-        return render_template("delete_account.html"), 401
+        return redirect(url_for("settings"))
+
+    # decisao : mesma validação do register (lower + validate_email sem checar DNS), para o email salvo ter sempre o mesmo formato e o login continuar funcionando
+    try:
+        email = validate_email(email, check_deliverability=False).email
+    except EmailNotValidError:
+        flash("Please enter a valid email address", "error")
+        return redirect(url_for("settings"))
+
+    # se o email novo for igual ao atual
+    info = get_user_info(user_id)
+    if info is not None and info[1] == email:
+        flash("New email must be different from the current one", "error")
+        return redirect(url_for("settings"))
+
+    # decisao : não usa email_exists() antes do UPDATE porque entre a consulta e o UPDATE outro cadastro poderia usar o mesmo email. A regra UNIQUE do banco garante isso e update_user_email retorna None quando ela é violada
+    if update_user_email(user_id, email) is None:
+        flash("This email is already registered", "error")
+        return redirect(url_for("settings"))
+
+    flash("Email changed successfully", "success")
+    return redirect(url_for("settings"))
+
+# Excluir conta : POST confirma com a senha e apaga (o formulário fica em settings.html)
+@app.route("/account/delete", methods=["POST"])
+@login_required
+def delete_account():
+    password = request.form.get("password", "") # senha do formulario
+    user_id = session["user_id"] # id da sessão
+
+    # se nao digitar senha
+    if len(password) == 0:
+        flash("Please enter your password", "error")
+        return redirect(url_for("settings"))
+
+    hashed = get_user_hash(user_id) # hash do usuario
+
+    # sessão aponta para um usuário que não existe mais (conta excluída / banco recriado)
+    if hashed is None:
+        session.clear()
+        flash("Your session is no longer valid, please log in again", "error")
+        return redirect(url_for("login"))
+
+    # se a senha estiver errada
+    if not verify_password(hashed, password):
+        flash("Incorrect password", "error")
+        return redirect(url_for("settings"))
 
     # deleta usuário
     delete_user(user_id)
