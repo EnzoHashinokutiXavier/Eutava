@@ -162,6 +162,12 @@ body {
     font-weight: 600;
 }
 
+.avatar-lg {
+    width: 120px;
+    height: 120px;
+    font-size: 2.80rem;
+}
+
 .user-name {
     flex: 1;                     /* ocupa o espaço e empurra o logout para a direita */
     font-weight: 500;
@@ -662,7 +668,7 @@ body {
     }
 
     .btn-tema span,
-    .avatar,
+    .user-card .avatar,           /* só o avatar da sidebar, não o da página de settings */
     .user-name {
         display: none;                /* no celular, só ícones */
     }
