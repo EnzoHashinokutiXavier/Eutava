@@ -1,9 +1,9 @@
-from attendance import Course, holiday_desc, day_info, course_stats, holiday_classes
+from app.attendance import Course, holiday_desc, day_info, course_stats, holiday_classes
 from datetime import date
 
 # How to run tests:
-# cd backend/app
-# python -m pytest test_attendance.py -v
+# cd backend
+# python -m pytest tests/test_attendance.py -v
 
 # Calendar reference (Aug 2026): Mon 3, Tue 4, Wed 5, Thu 6, Mon 10, Wed 12, Mon 17, Wed 19
 

@@ -64,6 +64,31 @@ def update_user_hash(user_id, new_hash):
             cur.execute("UPDATE users SET hash_password = %s WHERE user_id = %s", (new_hash, user_id))
             return cur.rowcount == 1
 
+# pegar nome e email pelo id (usado na página de settings)
+def get_user_info(user_id):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT name, email FROM users WHERE user_id = %s", (user_id,))
+            return cur.fetchone()  # (name, email) ou None se o usuário não existir
+
+# atualizar nome do usuário pelo id
+def update_user_name(user_id, new_name):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("UPDATE users SET name = %s WHERE user_id = %s", (new_name, user_id))
+            return cur.rowcount == 1 
+
+# atualizar email do usuário pelo id
+def update_user_email(user_id, new_email):
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("UPDATE users SET email = %s WHERE user_id = %s", (new_email, user_id))
+                return cur.rowcount == 1
+    # email já cadastrado em outra conta (regra unique do banco)
+    except UniqueViolation:
+        return None
+    
 # deletar usuário pelo id
 def delete_user(user_id):
     # Deleta o usuário do banco de dados
