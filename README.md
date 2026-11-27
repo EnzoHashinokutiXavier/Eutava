@@ -16,7 +16,15 @@ city: Dourados-MS (Brasil/Brazil)
 
 ## Overview
 
-TODO
+O **Eutava** é um site para estudantes controlarem as próprias faltas. O nome vem de "eu tava", jeito informal de dizer "eu estava (presente)" em português brasileiro.
+
+Na faculdade, cada matéria tem um limite de faltas, e passar desse limite reprova o aluno mesmo com nota boa. Acompanhar isso de cabeça, ou numa planilha, é difícil: as matérias têm quantidades de aulas diferentes em cada dia da semana, existem feriados e recessos, e às vezes o aluno falta só em parte das aulas de um dia.
+
+No Eutava, o usuário cadastra cada matéria com o limite de faltas, o período e a grade semanal. A partir daí, o site calcula quantas aulas já aconteceram, quantas faltas foram usadas e quantas ainda restam. Os feriados são descontados automaticamente, e os dias que o usuário não marcou seguem a presença padrão da matéria, então não é preciso registrar todo dia.
+
+A página inicial mostra as aulas de hoje, para marcar a presença com um clique, e a lista de matérias com um status (**Safe**, **Warning** ou **At risk**), começando pelas que estão mais perto do limite. Assim, o aluno vê logo quais matérias pedem mais atenção.
+
+O projeto foi feito como trabalho final do [CS50x](https://cs50.harvard.edu/x/), com Flask e PostgreSQL no backend e Jinja e Bootstrap no frontend.
 
 ## Features
 
