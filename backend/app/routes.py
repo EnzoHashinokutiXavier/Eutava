@@ -1,7 +1,7 @@
 from datetime import date
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 from app.decorators import login_required
-from app.models import get_course, get_courses, get_holidays, build_course, create_course, get_schedule, set_attendance, update_course, update_schedule, delete_attendance
+from app.models import get_course, get_courses, get_holidays, build_course, create_course, get_schedule, set_attendance, update_course, update_schedule, delete_attendance, delete_course
 from app.attendance import course_stats, holiday_classes
 
 # decisao : Blueprint foi escolhido para organizar as rotas relacionadas a matérias, separando-as das rotas de autenticação e de usuários.
@@ -159,6 +159,17 @@ def edit_course(course_id):
     flash("Course updated", "success")
     return redirect(url_for("courses.course_detail", course_id=course_id))
 
+# POST /courses/<id>/delete: remove a matéria (schedule e attendance caem junto pelo ON DELETE CASCADE)
+@bp.route("/<int:course_id>/delete", methods=["POST"])
+@login_required
+def remove_course(course_id):
+    # delete_course já filtra por user_id, então um usuário não consegue apagar matéria de outro
+    deleted = delete_course(course_id, session["user_id"])
+    if deleted:
+        flash("Course deleted", "success")
+    else:
+        flash("Course not found", "error")
+    return redirect(url_for("courses.list_courses"))
 
 # POST /courses/<id>/attendance: marcar presença ou falta num dia
 @bp.route("/<int:course_id>/attendance", methods=["POST"])
