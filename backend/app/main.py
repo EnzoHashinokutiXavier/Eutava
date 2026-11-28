@@ -42,11 +42,6 @@ def init_db_command():
     init_db()
     print("Banco initialized with success")
 
-#
-# !!! ALTERAR :
-# rotas para get_user_hash
-#
-
 # uso de ia : ao buscar falhas a ia recomendou o uso de handlers globais para tratar erros de conexão com o banco de dados e erros de CSRF, garantindo que o usuário receba uma mensagem amigável e que o sistema não exponha detalhes técnicos. Além disso, a ia sugeriu a implementação de validação de email no registro de usuários para evitar emails inválidos e melhorar a segurança do sistema.
 
 # Handler global para falhas de conexão com o banco: re-renderiza a página da rota que falhou com status 503
