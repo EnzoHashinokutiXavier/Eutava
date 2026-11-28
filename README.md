@@ -16,86 +16,120 @@ city: Dourados-MS (Brasil/Brazil)
 
 ## Overview
 
-O **Eutava** é um site para estudantes controlarem as próprias faltas. O nome vem de "eu tava", jeito informal de dizer "eu estava (presente)" em português brasileiro.
+O **Eutava** é um site feito para que estudantes tenham controle sobre suas quantias de faltas em seu ambiente academico.   
 
-Na faculdade, cada matéria tem um limite de faltas, e passar desse limite reprova o aluno mesmo com nota boa. Acompanhar isso de cabeça, ou numa planilha, é difícil: as matérias têm quantidades de aulas diferentes em cada dia da semana, existem feriados e recessos, e às vezes o aluno falta só em parte das aulas de um dia.
+Na faculdade, cada matéria tem um limite de faltas, e passar desse limite reprova o aluno mesmo com nota boa. Acompanhar isso de cabeça ou numa planilha é difícil e cansativo.
+No Eutava, o usuário cadastra cada matéria com o limite de faltas, o período e a grade semanal. A partir daí, o site calcula quantas aulas já aconteceram, quantas faltas foram usadas e quantas ainda restam. Os feriados são descontados automaticamente, e os dias que o usuário não marcou seguem a presença padrão da matéria, então não é preciso registrar todo dia.  
+O nome Eutava se origina de "eu tava", jeito informal de dizer "eu estava (presente)" no português brasileiro.  
 
-No Eutava, o usuário cadastra cada matéria com o limite de faltas, o período e a grade semanal. A partir daí, o site calcula quantas aulas já aconteceram, quantas faltas foram usadas e quantas ainda restam. Os feriados são descontados automaticamente, e os dias que o usuário não marcou seguem a presença padrão da matéria, então não é preciso registrar todo dia.
+A página inicial mostra as aulas de hoje permitindo o usuário marcar a presença com um clique, e a lista de matérias exibe cada uma com um status (Safe, Warning ou At risk), começando pelas que estão mais perto do limite. Assim, o aluno vê com prioridade quais matérias pedem mais atenção.
 
-A página inicial mostra as aulas de hoje, para marcar a presença com um clique, e a lista de matérias com um status (**Safe**, **Warning** ou **At risk**), começando pelas que estão mais perto do limite. Assim, o aluno vê logo quais matérias pedem mais atenção.
-
-O projeto foi feito como trabalho final do [CS50x](https://cs50.harvard.edu/x/), com Flask e PostgreSQL no backend e Jinja e Bootstrap no frontend.
+O projeto foi realizado como trabalho final do CS50x (Harvard) dos estudantes Enzo Hashinokuti e Augusto Correa. Servindo como uma oportunidade de estudo e experimentação de novas tecnologias, além de servir como um projeto para exibir em portifólio pelo trabalho em equipe realizado durante todo o desenvolvimento.
 
 ## Features
 
 ### Conta
 
-- **Cadastro** com nome, email e senha. O email é validado e a senha precisa ter pelo menos 8 caracteres.
-- **Login e logout**. As senhas são guardadas com hash Argon2, nunca em texto puro.
-- **Troca de senha**: pede a senha atual e a confirmação da nova senha, e não aceita uma senha nova igual à atual.
-- **Exclusão de conta**: pede a senha para confirmar. Ao excluir a conta, todas as matérias, presenças e feriados do usuário também são apagados.
+- **Cadastro**: nome, email e senha. Com validação de email da biblioteca email-validator e verificação de tamanho da senha.
+- **Login e logout**: as senhas são guardadas com hash Argon2 para não ficar em texto puro no banco de dados.
+- **Troca de senha**: pede a senha atual e a confirmação da nova senha, não aceita uma senha nova igual à atual.
+- **Exclusão de conta**: pede a senha para confirmar. Ao excluir a conta, todas as matérias, presenças e feriados do usuário também são apagados automaticamente do banco de dados pelo cascade.
 
 ### Matérias
 
-- Cada matéria tem **nome**, **limite de faltas** e **período** (data de início e de fim).
-- **Grade semanal**: você informa quantas aulas a matéria tem em cada dia da semana (por exemplo, 2 aulas na segunda e 1 na quarta).
-- **Presença padrão**: cada matéria define o que acontece com os dias que você não marcou. Eles podem contar como presença ou como falta.
-- Dá para **editar** a matéria a qualquer momento. O formulário já abre preenchido com os dados atuais.
+- **Informações**: cada matéria tem nome, limite de faltas e período marcado por data de início e de fim.
+- **Grade semanal**: usuário informa quantas aulas a matéria tem para cada dia da semana.
+- **Editar**: tem como editar as informações da matéria com um formulário que já abre preenchido com os dados atuais.
 
 ### Marcação de presença
 
-- A **página inicial** mostra as aulas de hoje. Cada uma tem os botões:
-  - **Present**: presente em todas as aulas do dia;
-  - **Partial**: escolhe quantas aulas você faltou;
+- **Página inicial**: mostra as aulas do dia. Cada matéria tem as opções:
+  - **Present**: presente em todas as aulas;
+  - **Partial**: escolhe quantas aulas faltou;
   - **Missed**: faltou em todas;
-  - **No class**: não houve aula nesse dia, então ele não conta.
-- Uma marcação pode ser **desfeita**, e o dia volta a seguir a presença padrão da matéria.
-- **Dias passados que não foram marcados** são preenchidos automaticamente com a presença padrão da matéria, então você não precisa marcar todo dia.
+  - **No class**: não houve aula, o dia não conta.
+- **Desfazer**: tirar a marcação do dia e volta a seguir a presença padrão da matéria.
+- **Dias não marcados**: preenchidos automaticamente com a presença padrão da matéria.
 
 ### Feriados e recessos
 
-- Você cadastra feriados de um dia ou recessos com várias datas, cada um com uma descrição.
-- Os feriados valem para **todas as matérias** do usuário: as aulas nesses dias são canceladas e não contam como falta.
-- Não é possível cadastrar dois feriados que caiam no mesmo dia.
+- **Data**: seleciona os dias que serão afetados
+- **Descrição**: texto para lembrar depois o motivo de nao ter aula no dia.
+- **Matérias**: todas matérias do dia não é contam no registro de faltas.
+- **Unicidade**: não é possível cadastrar dois feriados que caiam no mesmo dia.
 
 ### Status e acompanhamento
 
-- Cada matéria mostra quantas **faltas já foram usadas** e quantas ainda restam.
-- **Status** da matéria:
-  - **Safe**: abaixo de 75% do limite;
-  - **Warning**: a partir de 75% do limite;
-  - **At risk**: limite atingido ou ultrapassado.
-- A página inicial lista todas as matérias, começando pelas que têm **menos faltas sobrando**.
-- A página de detalhes da matéria mostra:
-  - uma barra de progresso das faltas;
-  - a grade semanal;
-  - as aulas canceladas por feriados;
-  - o histórico de presenças, da mais recente para a mais antiga.
+- **Faltas**: cada matéria mostra quantas foram usadas e quantas sobram.
+- **Status da matéria**: "Safe", "Warning" ou "At risk"
+- **Listagem**: a página inicial lista todas as matérias em ordem crescente de sobra de dias de falta restantes.
+- **Página de detalhes da matéria**:
+  - barra de progresso das faltas.
+  - grade semanal.
+  - aulas canceladas por feriados.
+  - histórico de presenças, da mais recente para a mais antiga.
 
 ## How attendance is calculated
 
- TODO
+As faltas são contadas por aula no dia: faltar num dia com 2 aulas gasta 2 faltas do limite.  
+O cálculo fica em [attendance.py](backend/app/attendance.py).
+
+### 1. Classificação de cada dia
+
+A função `day_info` olha um dia de cada vez e decide o que ele é. As regras são testadas nesta ordem, e a primeira que se aplica vale:
+
+| n | Situação do dia | Tipo | Faltas que conta |
+| --- | --- | --- | --- |
+| 1 | Fora do período da matéria | out | 0 (ignorado) |
+| 2 | Cai num feriado ou recesso | holiday | 0, mesmo que o dia tenha uma marcação |
+| 3 | Sem aula na grade e sem marcação | none | 0 (ignorado) |
+| 4 | Marcado como sem aula | noclass | 0 |
+| 5 | Marcado como presente | present | 0 |
+| 6 | Marcado com faltas em todas as aulas | missed | todas as aulas do dia |
+| 7 | Marcado com faltas em parte das aulas | partial | as faltas informadas |
+| 8 | Sem marcação, no futuro | future | 0 |
+| 9 | Sem marcação, hoje | pending | 0 até o usuário marcar |
+| 10 | Sem marcação, no passado | segue a presença padrão | 0 se a padrão for presença; todas as aulas do dia se for falta |
+
+- Se um feriado for cadastrado depois, ele cancela as aulas daquele dia mesmo que já tivessem sido marcadas.
+- O dia de hoje fica `pending` e não conta como falta. A presença padrão só é aplicada quando o dia termina e continua sem marcação.
+- Ao desfazer uma marcação, o registro é apagado e o dia volta para as regras 8 a 10.
+
+### 2. Total de faltas
+
+A função `course_stats` percorre todos os dias da matéria, da data de início à de fim, e soma as faltas dos dias do tipo present, partial e missed.   
+Faltas restantes = limite − faltas usadas.
+
+### 3. Status
+
+| Status | Condição |
+| --- | --- |
+| At risk | faltas usadas ≥ limite |
+| Warning | faltas usadas ≥ 75% do limite |
+| Safe | abaixo de 75% do limite |
+
+Os 75% ficam na constante `WARN_AT` em [routes.py](backend/app/routes.py).
 
 ## Tech stack
 
 ### Backend
 
-- **[Python 3](https://www.python.org/)**: linguagem do projeto.
-- **[Flask](https://flask.palletsprojects.com/)**: framework web. Cuida das rotas, da sessão do usuário e das mensagens de aviso (`flash`). As rotas de matérias e de feriados ficam em Blueprints separados.
-- **[python-dotenv](https://pypi.org/project/python-dotenv/)**: carrega o `DATABASE_URL` e a `SECRET_KEY` do arquivo `.env`, para que senhas e chaves não fiquem no código.
+- **[Python 3](https://www.python.org/)**: linguagem principal do funcionamento do projeto.
+- **[Flask](https://flask.palletsprojects.com/)**: framework web escolhida para servir de base do funcionamento do site, cuidando das rotas, da sessão do usuário e das mensagens de aviso (`flash`).
+- **[python-dotenv](https://pypi.org/project/python-dotenv/)**: carrega o `DATABASE_URL` e a `SECRET_KEY` do arquivo `.env`, para que senhas e chaves não fiquem no código. Esolhido como solução do problema de programar em equipe com um repositório público no github.
 
 ### Banco de dados
 
-- **[PostgreSQL](https://www.postgresql.org/)**: guarda usuários, matérias, grade semanal, presenças e feriados. As regras de integridade ficam no próprio banco:
-  - `CHECK`, por exemplo, para impedir que o número de faltas passe o número de aulas;
-  - `UNIQUE`, para que cada matéria tenha uma só marcação por dia;
-  - `ON DELETE CASCADE`, para que excluir a conta apague todos os dados do usuário.
-- **[psycopg 3](https://github.com/psycopg/psycopg/)**: conecta o Python ao PostgreSQL. As consultas são escritas em SQL puro, sem ORM, e sempre com parâmetros, o que evita SQL injection.
+- **[PostgreSQL](https://www.postgresql.org/)**: guarda usuários, matérias, grade semanal, presenças e feriados. As regras de integridade ficam no próprio banco com as funções SQL:
+  - `CHECK` para impedir que o número de faltas passe o número de aulas.
+  - `UNIQUE`para que cada matéria tenha uma só marcação por dia.
+  - `ON DELETE CASCADE` para que ao excluir a conta apague do banco todos os dados do usuário.
+- **[psycopg 3](https://github.com/psycopg/psycopg/)**: serve para conectar o Python ao Postgre. As consultas são escritas em SQL puro, com parâmetros para evitar SQL injection.
 
 ### Segurança
 
-- **[argon2-cffi](https://argon2-cffi.readthedocs.io/)**: gera o hash das senhas com Argon2id, o algoritmo recomendado atualmente para guardar senhas.
-- **[Flask-WTF](https://flask-wtf.readthedocs.io/)**: adiciona um token CSRF a todos os formulários. Assim, outro site não consegue enviar requisições em nome do usuário logado.
+- **[argon2-cffi](https://argon2-cffi.readthedocs.io/)**: gera o hash das senhas com Argon2id para manter a segurança dos dados não guardando as senhas em texto puro.
+- **[Flask-WTF](https://flask-wtf.readthedocs.io/)**: adiciona um token CSRF a todos os formulários. 
 - **[email-validator](https://pypi.org/project/email-validator/)**: confere se o email do cadastro tem um formato válido.
 
 ### Frontend
@@ -103,11 +137,11 @@ O projeto foi feito como trabalho final do [CS50x](https://cs50.harvard.edu/x/),
 - **[Jinja](https://jinja.palletsprojects.com/)**: templates HTML gerados no servidor, com um layout base que as outras páginas herdam.
 - **[Bootstrap 5](https://getbootstrap.com/)**: layout responsivo, componentes (barra de navegação, botões, dropdowns, barras de progresso) e as cores de status.
 - **[Bootstrap Icons](https://icons.getbootstrap.com/)**: ícones da interface.
-- **CSS e JavaScript próprios**: estilos personalizados e pequenos scripts, sem nenhum framework de JavaScript.
+- **[CSS](https://www.w3schools.com/css/)** e **[JS](https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/)**: estilos personalizados e pequenos scripts, sem nenhum framework de JavaScript.
 
 ### Testes
 
-- **[pytest](https://docs.pytest.org/)**: testes do cálculo de presença (`attendance.py`), do hash de senhas (`security.py`) e das funções do banco (`models.py`). Os testes do banco usam fixtures que criam um usuário e uma matéria de teste antes de cada teste e apagam tudo depois, então um teste não depende do outro.
+- **[pytest](https://docs.pytest.org/)**: testes para verificar o funcionamento correto das funções em python. Os testes do banco criam usuário e matéria de teste antes de cada teste e apagam tudo depois, então um teste não depende do outro.
 
 ## Project structure / Files
 
@@ -115,11 +149,32 @@ TODO
 
 ## Design decisions
 
-TODO
+### Porque Python ?
+Escolhemos o python por ser uma linguagem mais simples e prática para fazer projetos, outras linguagens que temos experiência seriam mais complicadas para realizar nossos objetivos
+- Enzo - "Por estar já estar familiarizado com a linguagem python a um bom tempo e ter sido abordada no CS50 achei que seria ideal para este projeto "
 
+### Python + Flask + Jinja
+Escolhemos esta combinação por termos aprendido e praticado essa combinação com o curso CS50. Já utilizamos essa combinação em outros projetos após ter aprendido com o CS50 então optamos por seguir com oque aprendemos no curso.
+
+### Bootstrap
+Já havíamos utilizado anteriormente em outros projetos e optamos por usar neste para facilitar o processo sem ter que criar componentes do zero e deixar a estilização mais agradavel visualmente com componentes prontos
+
+### Porque PostgreSQL e não SQLite3 ?
+Começamos o projeto planejando usar SQLite3 por ter aprendido no CS50, mas decidimos mudar para Postgres.
+
+- Augusto - "SQlite não é recomendado pra escrita simultanea, acho q n é uma boa pra um projeto em produção onde teria +1 cliente" 
+
+Já nos deparamos com este mesmo problema na realização de outro projeto, resolvemos neste outro projeto com aiosqlite, mas agora optamos por utilizar o PostgreSQL que aprendemos durante a faculdade.
+
+### Porque feriado afeta todas as matérias ?
+Inicialmente planejamos cadastrar cada feriado ligado a uma matéria mas depois decidimos alterar para um feriado afetar todas matérias do usuário. Isso porque apesar da possibilidade de um recesso de meio período poder afetar uma matéria e outra não no mesmo dia, é um caso raro que para o escopo do nosso projeto não compensa manter uma tabela de relação entre matérias e feriados. Essa decisão pode ser repensada caso o projeto for á produção com clientes reais 
+
+### Blueprints separados para holidays
+Ao mudar o planejamento para feriados ligados ao usuário criamos um blueprint dedicado aos holidays por não estarem ligados a cada matéria diretamente mas ao usuário
+
+  
+Assim, outro site não consegue enviar requisições em nome do usuário logado.
 ## How to run
-
-TODO
 
 ### Pré-requisitos
 
@@ -150,7 +205,7 @@ python3 -m venv venv
 source venv/bin/activate
 ```
 
-Deve aparecer `(venv)` no começo da linha do terminal.
+Deve aparecer "(venv)" no começo da linha do terminal.
 
 ### 3. Instalar as dependências
 
@@ -160,13 +215,13 @@ pip install -r requirements.txt
 
 ### 4. Criar o banco de dados
 
-Conecte ao PostgreSQL com o usuário definido na instalação (geralmente `postgres`) e crie um banco vazio:
+Conecte ao PostgreSQL com o usuário definido na instalação (geralmente postgres) e crie um banco vazio:
 
 ```bash
 psql -U postgres -c "CREATE DATABASE eutava;"
 ```
 
-### 5. Criar o arquivo `.env`
+### 5. Criar o arquivo .env
 
 Copie o `.env.example` para um arquivo novo chamado `.env` na **raiz do projeto** (mesma pasta deste README):
 
@@ -182,7 +237,7 @@ macOS / Linux:
 cp .env.example .env
 ```
 
-Depois abra o `.env` e preencha os dois valores:
+Depois abra o .env e preencha os dois valores:
 
 ```env
 DATABASE_URL=postgresql://postgres:SUA_SENHA_DO_POSTGRES@localhost:5432/eutava
@@ -205,7 +260,7 @@ cd backend
 flask --app app.main init-db
 ```
 
-Deve aparecer `Banco initialized with success`. Pode rodar de novo sem problema: só cria as tabelas que ainda não existem.
+Deve aparecer "Banco initialized with success". Pode rodar de novo sem problema: só cria as tabelas que ainda não existem.
 
 ### 7. Iniciar o servidor
 
@@ -213,11 +268,11 @@ Deve aparecer `Banco initialized with success`. Pode rodar de novo sem problema:
 flask --app app.main run
 ```
 
-Abra **http://127.0.0.1:5000** no navegador.
+Abra http://127.0.0.1:5000 no navegador.
 
 ### 8. Testar o site
 
-1. Clique em **Register** e crie uma conta (qualquer email em formato válido, senha com pelo menos 8 caracteres).
+1. Clique em `Register` e crie uma conta (qualquer email em formato válido, senha com pelo menos 8 caracteres).
 2. Faça login.
 3. Crie uma matéria: defina o limite de faltas, as datas de início e fim e quantas aulas ela tem em cada dia da semana.
 4. Na página inicial, marque as aulas de hoje como presença / falta / sem aula e veja o status da matéria mudar.
@@ -227,12 +282,15 @@ Para parar o servidor, aperte `Ctrl + C`. Nas próximas vezes basta ativar o ven
 
 ### Problemas comuns
 
-| Erro | Causa / solução |
-| --- | --- |
-| `Could not import 'app.main'` | Você não está dentro da pasta `backend`. Rode `cd backend`. |
-| `connection refused` / `Connection timed out` | O serviço do PostgreSQL não está rodando, ou a porta não é `5432`. |
-| `password authentication failed` | Usuário ou senha errados no `DATABASE_URL`. |
-| `'flask' não é reconhecido` | O ambiente virtual não está ativo. Veja o passo 2. |
+problemas que tivemos durante o desenvolvimento
+
+- Could not import 'app.main': você não está dentro da pasta backend, rode 
+  ```bash
+  cd backend
+  ```
+- Connection refused / Connection timed out: o serviço do PostgreSQL não está rodando, ou a porta não é 5432. 
+- Password authentication failed: usuário ou senha errados no DATABASE_URL. 
+- 'flask' não é reconhecido: o ambiente virtual não está ativo. Veja o passo 2. 
 
 ## Testing 
 
@@ -271,6 +329,10 @@ Usamos IA como apoio para tirar dúvidas, revisar o código e procurar falhas. O
 - **Estrutura dos testes** ([pytest.ini](backend/pytest.ini)): a IA ajudou a seguir as boas práticas na organização dos testes.
 - **Testes unitários** ([test_models.py](backend/tests/test_models.py), [test_attendance.py](backend/tests/test_attendance.py)): usamos a IA para aprender a escrever testes unitários e organizá-los melhor.
 - **Dados de teste compartilhados** ([test_models.py](backend/tests/test_models.py)): ao investigar um teste que falhava, a IA recomendou definir os dados no início do arquivo. Assim, todos os testes usam os mesmos valores, é fácil mudá-los e um teste não depende de outro.
+
+### Mensagens de commit
+
+- A maioria das mensagens de commit foi gerada pelo gerador de mensagens de commit do VS Code (GitHub Copilot), a partir das alterações de cada commit. A IA só escreveu o texto da mensagem, não o conteúdo dos commits.
 
 ## References
 
